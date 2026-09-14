@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root { color: #172b4d; background: #f5f7fa; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input { font: inherit; }
+.app-shell { min-height: 100vh; }
+.hero-grid { background-image: linear-gradient(rgba(18,100,163,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(18,100,163,.05) 1px, transparent 1px); background-size: 28px 28px; }
+.module-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.module-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(18,43,77,.11); border-color: #8bbce0; }
+.drop-zone { border: 1.5px dashed #8aa7bd; transition: background .2s ease, border-color .2s ease; }
+.drop-zone:hover { background: #f0f7fc; border-color: #1264a3; }
+.table-scroll { overflow-x: auto; }
+.preview-paper { box-shadow: 0 6px 25px rgba(23,43,77,.1); }
+@media (max-width: 700px) { .hide-mobile { display: none !important; } .preview-paper { padding: 22px !important; } }
