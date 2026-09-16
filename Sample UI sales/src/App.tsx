@@ -1,9 +1,13 @@
+import { calculateTotals, roundMoney, stockError, localDate, validDate, validQuotes, insertQuotation, updateDraft, canTransition } from './sales-logic';
+import { usePersistentState } from './use-persistent-state';
+import { catalogColumns as defaultCatalogColumns, type CatalogColumns, validExtraColumns, parseCatalog, createCatalogTemplate } from './catalog-import';
 import { QuotationDetails } from "./quotation-view";
 import {
   CustomerProvider,
   Customers,
   QuotationRecipients,
   useCustomers,
+  cleanRecipients,
 } from "./customers";
 import {
   CatalogProvider,
@@ -59,6 +63,7 @@ import {
   TableRow,
   TextField,
   Toolbar,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
@@ -76,52 +81,22 @@ import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 
 type Status = "Draft" | "Sent" | "Accepted" | "Rejected" | "Hold";
-type CatalogColumns = {
-  itemNo: string;
-  id: string;
-  type: string;
-  description: string;
-  category: string;
-  unit: string;
-  rate: string;
-  available: string;
-};
-const defaultCatalogColumns: CatalogColumns = {
-  itemNo: "Item No.",
-  id: "Product ID",
-  type: "Type",
-  description: "Description",
-  category: "Category",
-  unit: "Unit",
-  rate: "Rate",
-  available: "Available Quantity",
-};
 const catalogTemplateStorageKey = "goelta.catalog-template.extra-columns.v1";
-const loadExtraCatalogColumns = () => {
-  if (typeof localStorage === "undefined") return [];
-  try {
-    const stored = JSON.parse(localStorage.getItem(catalogTemplateStorageKey) || "[]");
-    return Array.isArray(stored) && stored.every((value) => typeof value === "string")
-      ? stored
-      : [];
-  } catch {
-    return [];
-  }
-};
-const productsSeed = catalogSeed.map((item) => ({
-  ...item,
-  available: item.available ?? Number.MAX_SAFE_INTEGER,
-}));
 export type Quote = {
   id: string;
   customerId?: string;
   customer: string;
+  subcontractId?: string;
+  subcontract?: string;
   date: string;
   expiry: string;
   total: number;
   status: Status;
   statusDate?: string;
+  isDemo?: boolean;
+  statusHistory?: { status: Status; date: string }[];
   lines?: {
+    catalogId?: string;
     itemNo?: string;
     description: string;
     quantity: number;
@@ -136,7 +111,7 @@ export type Quote = {
   customerAddress?: string;
   recipients?: { role: "To" | "CC"; email: string; name?: string }[];
 };
-const quotesSeed: Quote[] = [
+const quotesSeed: Quote[] = ([
   {
     id: "SQ-2026-0042",
     customerId: "1",
@@ -207,10 +182,10 @@ const quotesSeed: Quote[] = [
       { description: "Installation service", quantity: 1, unitPrice: 600 },
     ],
   },
-];
+] as Quote[]).map(q => ({ ...q, isDemo: true }));
 const orders = [
   {
-    id: "SO-2026-0018",
+    id: "PO-2026-0018",
     customer: "Cedar & Co. Holdings",
     date: "12 Sep 2026",
     total: 8420,
@@ -219,7 +194,7 @@ const orders = [
     invoice: "Pending",
   },
   {
-    id: "SO-2026-0017",
+    id: "PO-2026-0017",
     customer: "Asteria Construction Ltd",
     date: "28 Aug 2026",
     total: 5280,
@@ -228,7 +203,7 @@ const orders = [
     invoice: "INV-2026-0091",
   },
   {
-    id: "SO-2026-0016",
+    id: "PO-2026-0016",
     customer: "Bluehaven Hospitality",
     date: "21 Aug 2026",
     total: 3100,
@@ -284,7 +259,8 @@ function Shell({ children }: { children: React.ReactNode }) {
     ["Dashboard", "/sales", <DashboardRoundedIcon />],
     ["Customers", "/sales/customers", <GroupsRoundedIcon />],
     ["Quotations", "/sales/quotations", <ReceiptLongRoundedIcon />],
-    ["Sales Orders", "/sales/orders", <ShoppingCartRoundedIcon />],
+    ["Purchase Orders", "/sales/purchase-orders", <ShoppingCartRoundedIcon />],
+    ["Invoices", "/sales/invoices", <ReceiptLongRoundedIcon />],
   ] as const;
   return (
     <Box className="app-shell">
@@ -665,7 +641,7 @@ function SalesDashboard() {
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <Stat
-            label="Sales orders"
+            label="Purchase orders"
             value="18"
             detail="3 processing now"
             color="#ad5c2b"
@@ -700,7 +676,7 @@ function SalesDashboard() {
                 <Box>
                   <Typography sx={{ fontWeight: 700 }}>{q.id}</Typography>
                   <Typography variant="body2" sx={{ color: "#71869a" }}>
-                    {q.customer} · {q.date}
+                    {q.customer}{q.subcontract ? ` · ${q.subcontract}` : ""} · {q.date}
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={2} alignItems="center">
@@ -745,10 +721,10 @@ function SalesDashboard() {
             ))}
             <Button
               sx={{ mt: 2 }}
-              onClick={() => navigate("/sales/orders")}
+              onClick={() => navigate("/sales/purchase-orders")}
               endIcon={<OpenInNewRoundedIcon />}
             >
-              View sales orders
+              View purchase orders
             </Button>
           </Paper>
         </Grid>
@@ -765,147 +741,34 @@ function ProductImport({
   onAddItem?: (item: CatalogItem) => void;
 }) {
   const { items, replace } = useCatalog();
-  const [columns, setColumns] = useState<CatalogColumns>(defaultCatalogColumns);
-  const [extraColumns, setExtraColumns] = useState<string[]>(loadExtraCatalogColumns);
+  const columns = defaultCatalogColumns;
+  const { value: extraColumns, commit: saveExtraColumns, error: templateError } = usePersistentState<string[]>(catalogTemplateStorageKey, [], validExtraColumns);
+  const [busy, setBusy] = useState(false);
+  const [messageSeverity, setMessageSeverity] = useState<'success' | 'error'>('success');
+  const previewColumns = [...new Set([...extraColumns, ...items.flatMap(item => Object.keys(item.attributes || {}))])];
   const [builderOpen, setBuilderOpen] = useState(false);
   const [fileName, setFileName] = useState("");
   const [message, setMessage] = useState("");
   const [previewOpen, setPreviewOpen] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
-  const importFile = (file: File) => {
-    if (!file.name.match(/\.xlsx?$/i)) {
-      setMessage(
-        "Unsupported file format. Please choose an .xlsx or .xls file.",
-      );
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const workbook = XLSX.read(event.target?.result, { type: "array" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const matrix = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
-          header: 1,
-          defval: "",
-        });
-        const expectedHeaders = Object.values(columns).concat(extraColumns);
-        const candidates = matrix.slice(0, 20).map((row, index) => ({
-          index,
-          headers: row.map((cell) => String(cell).trim()).filter(Boolean),
-          matches: row.filter((cell) => expectedHeaders.includes(String(cell).trim())).length,
-        }));
-        const candidate = candidates.sort((a, b) => b.matches - a.matches)[0];
-        const headerRow = candidate?.matches ? candidate.index : -1;
-        if (headerRow < 0)
-          throw new Error("The workbook header row could not be identified.");
-        const actualHeaders = candidate.headers;
-        const duplicateHeaders = actualHeaders.filter(
-          (header, index) => actualHeaders.indexOf(header) !== index,
-        );
-        const missingHeaders = expectedHeaders.filter(
-          (header) => !actualHeaders.includes(header),
-        );
-        const unknownHeaders = actualHeaders.filter(
-          (header) => !expectedHeaders.includes(header),
-        );
-        if (duplicateHeaders.length || missingHeaders.length || unknownHeaders.length) {
-          const problems = [
-            duplicateHeaders.length ? `Duplicate: ${[...new Set(duplicateHeaders)].join(", ")}` : "",
-            missingHeaders.length ? `Missing: ${missingHeaders.join(", ")}` : "",
-            unknownHeaders.length ? `Unknown: ${unknownHeaders.join(", ")}` : "",
-          ].filter(Boolean);
-          throw new Error(`Excel columns do not match the active template. ${problems.join(". ")}.`);
-        }
-        const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
-          range: headerRow,
-          defval: "",
-        });
-        const imported = rows
-          .filter((row) => Object.values(row).some((value) => String(value).trim()))
-          .map((row, index) => {
-            const value = (key: keyof CatalogColumns) => row[columns[key]];
-            const description = String(value("description") || "").trim();
-            const rate = Number(value("rate"));
-            const rawType = String(value("type") || "").trim().toLowerCase();
-            if (!description) throw new Error(`Row ${headerRow + index + 2}: Description is required.`);
-            if (!Number.isFinite(rate) || rate < 0) throw new Error(`Row ${headerRow + index + 2}: Rate must be zero or greater.`);
-            if (rawType !== "product" && rawType !== "service") throw new Error(`Row ${headerRow + index + 2}: Type must be Product or Service.`);
-            const type = rawType === "service" ? ("Service" as const) : ("Product" as const);
-            const availableValue = value("available");
-            const available = type === "Service" ? null : Number(availableValue);
-            if (type === "Product" && (!Number.isFinite(available) || Number(available) < 0)) throw new Error(`Row ${headerRow + index + 2}: Available Quantity must be zero or greater for products.`);
-            return {
-              id: String(value("id") || `ITEM-${index + 1}`),
-              itemNo: String(value("itemNo") || index + 1),
-              type,
-              description,
-              name: description,
-              category: String(value("category") || "Uncategorized"),
-              unit: String(value("unit") || "Item"),
-              rate,
-              price: rate,
-              available,
-              attributes: Object.fromEntries(
-                extraColumns.map((header) => {
-                  const attribute = row[header];
-                  return [
-                    header,
-                    typeof attribute === "number"
-                      ? attribute
-                      : String(attribute ?? ""),
-                  ];
-                }),
-              ),
-            };
-          })
-        if (!imported.length) throw new Error("The workbook does not contain any product or service rows.");
-        replace(imported);
-        setFileName(file.name);
-        setMessage(
-          `${imported.length} valid catalog records ready. Import confirmed locally.`,
-        );
-      } catch (error) {
-        setMessage(error instanceof Error ? error.message : "The workbook could not be read. Check its columns and try again.");
-      }
-    };
-    reader.readAsArrayBuffer(file);
+  const importFile = async (file: File) => {
+    setMessage(''); setMessageSeverity('error');
+    if (!/\.xlsx?$/i.test(file.name)) { setMessage('Choose an .xlsx or .xls file.'); return; }
+    setBusy(true);
+    try {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      if (!sheet) throw Error('The workbook has no worksheet.');
+      const imported = parseCatalog(sheet, extraColumns);
+      if (!replace(imported)) throw Error('Import was not saved. Resolve the storage error and try again.');
+      setFileName(file.name); setPreviewOpen(true); setMessageSeverity('success');
+      setMessage(imported.length + ' catalog records imported and saved in this browser.');
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'The workbook could not be read.'); }
+    finally { setBusy(false); if (inputRef.current) inputRef.current.value = ''; }
   };
   const downloadTemplate = () => {
-    const headers = Object.values(columns).concat(extraColumns);
-    const rows = [
-      ["GOELTA SALES CATALOG TEMPLATE"],
-      [],
-      headers,
-      [
-        "1.1",
-        "PRD-001",
-        "Product",
-        "Example material or stock item",
-        "Materials",
-        "Sq.Ft",
-        0,
-        0,
-        ...extraColumns.map(() => ""),
-      ],
-      [
-        "2.1",
-        "SRV-001",
-        "Service",
-        "Example installation or labour service",
-        "Services",
-        "Item",
-        0,
-        "",
-        ...extraColumns.map(() => ""),
-      ],
-    ];
-    const sheet = XLSX.utils.aoa_to_sheet(rows);
-    sheet["!cols"] = headers.map((header) => ({
-      wch: Math.max(14, Math.min(42, header.length + 4)),
-    }));
-    const book = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, sheet, "Catalog");
-    XLSX.writeFile(book, "GOELTA-sales-catalog-template.xlsx");
+    try { XLSX.writeFile(createCatalogTemplate(extraColumns), 'GOELTA-sales-catalog-template.xlsx'); }
+    catch { setMessageSeverity('error'); setMessage('Template download failed. Please try again.'); }
   };
   return (
     <Box sx={{ p: embedded ? 0 : { xs: 3, md: 5 } }}>
@@ -917,9 +780,9 @@ function ProductImport({
               <Typography variant="body2" color="text.secondary">Upload a product and service list, then add the required rows to this quotation.</Typography>
             </Box>
             <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-              <Button variant="outlined" onClick={() => setBuilderOpen(true)}>Modify template</Button>
+              <Button disabled={busy || !!templateError} variant="outlined" onClick={() => setBuilderOpen(true)}>Modify template</Button>
               <Button variant="outlined" startIcon={<DownloadRoundedIcon />} onClick={downloadTemplate}>Download template</Button>
-              <Button variant="contained" startIcon={<CloudUploadRoundedIcon />} onClick={() => inputRef.current?.click()}>Upload Excel</Button>
+              <Button disabled={busy || !!templateError} variant="contained" startIcon={<CloudUploadRoundedIcon />} onClick={() => inputRef.current?.click()}>Upload Excel</Button>
             </Stack>
           </Stack>
         </Paper>
@@ -928,26 +791,14 @@ function ProductImport({
           eyebrow="Sales workspace"
           title="Products & Services Import"
           description="Import inventory products and services for quotation line items."
-          action={<Stack direction={{ xs: "column", sm: "row" }} spacing={1}><Button variant="outlined" onClick={() => setBuilderOpen(true)}>Build template</Button><Button variant="outlined" startIcon={<DownloadRoundedIcon />} onClick={downloadTemplate}>Download template</Button><Button variant="contained" startIcon={<CloudUploadRoundedIcon />} onClick={() => inputRef.current?.click()}>Upload Excel</Button></Stack>}
+          action={<Stack direction={{ xs: "column", sm: "row" }} spacing={1}><Button disabled={busy || !!templateError} variant="outlined" onClick={() => setBuilderOpen(true)}>Build template</Button><Button variant="outlined" startIcon={<DownloadRoundedIcon />} onClick={downloadTemplate}>Download template</Button><Button disabled={busy || !!templateError} variant="contained" startIcon={<CloudUploadRoundedIcon />} onClick={() => inputRef.current?.click()}>Upload Excel</Button></Stack>}
         />
       )}
       {builderOpen && <CatalogTemplateBuilder
         open={builderOpen}
         columns={columns}
         extraColumns={extraColumns}
-        onSave={(nextColumns, nextExtraColumns) => {
-          setColumns(nextColumns);
-          setExtraColumns(nextExtraColumns);
-          try {
-            localStorage.setItem(
-              catalogTemplateStorageKey,
-              JSON.stringify(nextExtraColumns),
-            );
-          } catch {
-            setMessage("The template was updated for this session but could not be saved in browser storage.");
-          }
-          setBuilderOpen(false);
-        }}
+        onSave={(_, nextExtraColumns) => saveExtraColumns(nextExtraColumns)}
         onClose={() => setBuilderOpen(false)}
       />}
       <input
@@ -957,9 +808,11 @@ function ProductImport({
         accept=".xlsx,.xls"
         onChange={(e) => e.target.files?.[0] && importFile(e.target.files[0])}
       />
+      {templateError && <Alert severity="error">{templateError}</Alert>}
+      {busy && <Alert severity="info">Reading and validating workbook…</Alert>}
       {message && (
         <Alert
-          severity={message.includes("valid") ? "success" : "error"}
+          severity={messageSeverity}
           sx={{ mt: 2 }}
         >
           {message}
@@ -970,7 +823,7 @@ function ProductImport({
       </Button>}
       {previewOpen && <Paper
         variant="outlined"
-        sx={{ mt: 3, borderColor: "#e1e8ee", overflow: "hidden" }}
+        sx={{ mt: 3, borderColor: "#e1e8ee", overflowX: "auto" }}
       >
         <Box sx={{ p: 2.5 }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -982,12 +835,14 @@ function ProductImport({
           <TableHead sx={{ bgcolor: "#f7f9fb" }}>
             <TableRow>
               <TableCell>Item No.</TableCell>
+              <TableCell>Product ID</TableCell>
+              <TableCell>Category</TableCell>
               <TableCell>Type</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Unit</TableCell>
               <TableCell align="right">Rate</TableCell>
               <TableCell align="right">Available</TableCell>
-              {extraColumns.map((column) => <TableCell key={column}>{column}</TableCell>)}
+              {previewColumns.map((column) => <TableCell key={column}>{column}</TableCell>)}
               {onAddItem && <TableCell align="right">Quotation</TableCell>}
             </TableRow>
           </TableHead>
@@ -995,6 +850,8 @@ function ProductImport({
             {items.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>{item.itemNo}</TableCell>
+                <TableCell>{item.id}</TableCell>
+                <TableCell>{item.category}</TableCell>
                 <TableCell>{item.type}</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>
                   {item.description}
@@ -1006,8 +863,8 @@ function ProductImport({
                 <TableCell align="right">
                   {item.available === null ? "N/A" : item.available}
                 </TableCell>
-                {extraColumns.map((column) => <TableCell key={column}>{String(item.attributes?.[column] ?? "")}</TableCell>)}
-                {onAddItem && <TableCell align="right"><Button size="small" onClick={() => onAddItem(item)}>Add</Button></TableCell>}
+                {previewColumns.map((column) => <TableCell key={column}>{String(item.attributes?.[column] ?? "")}</TableCell>)}
+                {onAddItem && <TableCell align="right"><Button disabled={busy} size="small" onClick={() => onAddItem(item)}>Add</Button></TableCell>}
               </TableRow>
             ))}
           </TableBody>
@@ -1027,7 +884,7 @@ function CatalogTemplateBuilder({
   open: boolean;
   columns: CatalogColumns;
   extraColumns: string[];
-  onSave: (columns: CatalogColumns, extraColumns: string[]) => void;
+  onSave: (columns: CatalogColumns, extraColumns: string[]) => boolean;
   onClose: () => void;
 }) {
   const draftColumns = columns;
@@ -1044,45 +901,6 @@ function CatalogTemplateBuilder({
     ["rate", "Rate"],
     ["available", "Available quantity"],
   ];
-  const download = () => {
-    const headers = fields
-      .map(([key]) => draftColumns[key])
-      .concat(draftExtras);
-    const rows = [
-      ["GOELTA SALES CATALOG TEMPLATE"],
-      [],
-      headers,
-      [
-        "1.1",
-        "PRD-001",
-        "Product",
-        "Example material or stock item",
-        "Materials",
-        "Sq.Ft",
-        0,
-        0,
-        ...draftExtras.map(() => ""),
-      ],
-      [
-        "2.1",
-        "SRV-001",
-        "Service",
-        "Example installation or labour service",
-        "Services",
-        "Item",
-        0,
-        "",
-        ...draftExtras.map(() => ""),
-      ],
-    ];
-    const sheet = XLSX.utils.aoa_to_sheet(rows);
-    sheet["!cols"] = headers.map((header) => ({
-      wch: Math.max(14, Math.min(42, header.length + 4)),
-    }));
-    const book = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, sheet, "Catalog");
-    XLSX.writeFile(book, "GOELTA-sales-catalog-template.xlsx");
-  };
   return (
     <Dialog open={open} fullWidth maxWidth="md" onClose={onClose}>
       <DialogTitle>Build product data template</DialogTitle>
@@ -1136,8 +954,10 @@ function CatalogTemplateBuilder({
         <Button onClick={onClose}>Cancel</Button>
         <Button
           onClick={() => {
-            download();
-            onSave(draftColumns, draftExtras);
+            if (extra.trim()) { setBuilderError('Click Add for the pending heading, or clear it before saving.'); return; }
+            if (!onSave(draftColumns, draftExtras)) { setBuilderError('Template was not saved. Resolve the storage error and retry.'); return; }
+            try { XLSX.writeFile(createCatalogTemplate(draftExtras), 'GOELTA-sales-catalog-template.xlsx'); onClose(); }
+            catch { setBuilderError('Template saved, but download failed. Retry using Download template.'); }
           }}
           variant="contained"
           startIcon={<DownloadRoundedIcon />}
@@ -1151,10 +971,8 @@ function CatalogTemplateBuilder({
 
 function Quotations({
   list,
-  setList,
 }: {
   list: Quote[];
-  setList: React.Dispatch<React.SetStateAction<Quote[]>>;
 }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
@@ -1226,7 +1044,7 @@ function Quotations({
             {filtered.map((q) => (
               <TableRow key={q.id} hover>
                 <TableCell sx={{ fontWeight: 700 }}>{q.id}</TableCell>
-                <TableCell>{q.customer}</TableCell>
+                <TableCell><Typography>{q.customer}</Typography>{q.subcontract && <Typography variant="caption" color="text.secondary" display="block">{q.subcontract}</Typography>}</TableCell>
                 <TableCell>{q.date}</TableCell>
                 <TableCell>{q.expiry}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700 }}>
@@ -1244,22 +1062,19 @@ function Quotations({
                   >
                     View
                   </Button>
-                  {q.status === "Draft" && (
-                    <Button
-                      size="small"
-                      onClick={() =>
-                        setList(
-                          list.map((item) =>
-                            item.id === q.id
-                              ? { ...item, status: "Sent" }
-                              : item,
-                          ),
-                        )
-                      }
-                    >
-                      Send
-                    </Button>
-                  )}
+                  {q.status === "Draft" && <Button size="small" onClick={() => navigate(`/sales/quotations/${encodeURIComponent(q.id)}/edit`)}>Edit draft</Button>}
+                  <>
+                    <Tooltip title={q.status === "Accepted" ? "Create a purchase order" : "Set status to Accepted first"}>
+                      <span>
+                        <Button size="small" disabled={q.status !== "Accepted"} onClick={() => navigate("/sales/purchase-orders")}>Create PO</Button>
+                      </span>
+                    </Tooltip>
+                    <Tooltip title={q.status === "Accepted" ? "Create an invoice" : "Set status to Accepted first"}>
+                      <span>
+                        <Button size="small" disabled={q.status !== "Accepted"} onClick={() => navigate("/sales/invoices")}>Create invoice</Button>
+                      </span>
+                    </Tooltip>
+                  </>
                 </TableCell>
               </TableRow>
             ))}
@@ -1295,44 +1110,42 @@ const emptyManualLine = (): DraftQuotationLine => ({
   attributes: {},
 });
 
-function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
+function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => boolean; initial?: Quote }) {
   const navigate = useNavigate();
   const { companies } = useCustomers();
   const { items } = useCatalog();
-  const catalogItems = items.length ? items : productsSeed;
+  const { value: extraColumns } = usePersistentState<string[]>(catalogTemplateStorageKey, [], validExtraColumns);
+
   const activeCompanies = companies.filter(
     (company) => company.status === "Active",
   );
-  const today = new Date().toISOString().slice(0, 10);
-  const defaultExpiry = new Date(Date.now() + 30 * 86400000)
-    .toISOString()
-    .slice(0, 10);
-  const [number, setNumber] = useState(
-    `SQ-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`,
-  );
-  const [date, setDate] = useState(today);
-  const [expiry, setExpiry] = useState(defaultExpiry);
-  const [customerId, setCustomerId] = useState("");
+  const today = localDate();
+  const defaultExpiry = localDate(30);
+  const [number, setNumber] = useState(() => initial?.id || 'SQ-' + new Date().getFullYear() + '-' + crypto.randomUUID().slice(0, 8).toUpperCase());
+  const [date, setDate] = useState(initial?.date || today);
+  const [expiry, setExpiry] = useState(initial?.expiry || defaultExpiry);
+  const [customerId, setCustomerId] = useState(initial?.customerId || "");
+    const [subcontractId, setSubcontractId] = useState(initial?.subcontractId || "");
   const [profileRecipients, setProfileRecipients] = useState<{
     to: string;
     cc: string[];
   }>({ to: "", cc: [] });
-  const [lines, setLines] = useState<DraftQuotationLine[]>([]);
+  const [lines, setLines] = useState<DraftQuotationLine[]>(() => (initial?.lines || []).map(line => ({ ...line, id: crypto.randomUUID(), source: line.catalogId ? "catalog" : "manual", itemNo: line.itemNo || "", unit: line.unit || "Item", available: null, attributes: { ...line.attributes } })));
   const [manualLine, setManualLine] = useState<DraftQuotationLine | null>(null);
+  const [manualColumns, setManualColumns] = useState<string[]>(extraColumns);
+  const [newManualColumn, setNewManualColumn] = useState("");
   const [manualLineError, setManualLineError] = useState("");
-  const [discount, setDiscount] = useState(0);
-  const [taxRate, setTaxRate] = useState(0);
+  const [discount, setDiscount] = useState(initial?.discount || 0);
+  const [taxRate, setTaxRate] = useState(initial?.taxRate || 0);
   const [error, setError] = useState("");
   const customer =
     activeCompanies.find((company) => company.id === customerId) || null;
-  const subtotal = lines.reduce(
-    (sum, line) => sum + line.unitPrice * line.quantity,
-    0,
-  );
-  const total = Math.max(0, subtotal - discount) * (1 + taxRate / 100);
-  const invalidStock = lines.some(
-    (line) => line.available !== null && line.quantity > line.available,
-  );
+  const subcontract = customer?.subcontracts?.find(item => item.id === subcontractId) || null;
+  let totals = { subtotal: 0, tax: 0, total: 0 }; let totalsError = '';
+  try { totals = calculateTotals(lines, discount, taxRate); } catch (e) { totalsError = (e as Error).message; }
+  const { subtotal, total } = totals;
+  const inventoryError = stockError(lines, items);
+  const invalidStock = !!inventoryError;
   const updateLine = (
     id: string,
     patch: Partial<DraftQuotationLine>,
@@ -1353,7 +1166,7 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
         unit: item.unit,
         unitPrice: item.price,
         available: item.available,
-        attributes: item.attributes,
+        attributes: { ...item.attributes },
       },
     ]);
   const addManualLine = () => {
@@ -1363,7 +1176,7 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
     if (!Number.isFinite(manualLine.quantity) || manualLine.quantity <= 0)
       return setManualLineError("Quantity must be greater than zero.");
     if (!Number.isFinite(manualLine.unitPrice) || manualLine.unitPrice < 0)
-      return setManualLineError("Rate cannot be negative.");
+      return setManualLineError("Enter a valid, non-negative rate.");
     setLines((current) => [
       ...current,
       { ...manualLine, description: manualLine.description.trim(), unit: manualLine.unit.trim() || "Item" },
@@ -1371,9 +1184,24 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
     setManualLine(null);
     setManualLineError("");
   };
+  const updateManualAttribute = (column: string, value: string) => {
+    setManualLine(current => current ? { ...current, attributes: { ...current.attributes, [column]: value } } : current);
+  };
+  const addManualColumn = () => {
+    const heading = newManualColumn.trim();
+    if (!heading) return setManualLineError("Enter a custom column heading.");
+    if (heading.length > 60 || /[\r\n]/.test(heading)) return setManualLineError("Use a single-line heading of 60 characters or fewer.");
+    if ([...Object.values(defaultCatalogColumns), ...manualColumns].some(column => column.toLowerCase() === heading.toLowerCase())) return setManualLineError("That column already exists.");
+    setManualColumns(current => [...current, heading]);
+    setNewManualColumn("");
+    setManualLineError("");
+  };
   const save = (status: Status) => {
     setError("");
-    if (!number.trim() || !date || !expiry || !customer || !lines.length)
+    if (manualLine) return setError("Finish or cancel the manual line before saving.");
+    if (totalsError) return setError(totalsError);
+    if (lines.some(line => !line.description.trim() || !line.unit.trim())) return setError("Each line needs a description and unit.");
+    if (!number.trim() || !validDate(date) || !validDate(expiry) || !customer || (!!customer.subcontracts?.length && !subcontract) || !lines.length)
       return setError(
         "Enter quotation details, select an active customer, and add at least one item.",
       );
@@ -1386,7 +1214,8 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
       invalidStock
     )
       return setError("Check item quantities against the available inventory.");
-    if (status === "Sent" && !profileRecipients.to)
+    const selectedRecipients = cleanRecipients(customer, profileRecipients.to, profileRecipients.cc);
+    if (status === "Sent" && !selectedRecipients.to)
       return setError("Choose a main email recipient before sending the quotation.");
     const recipientById = (id: string) => {
       if (!customer) return null;
@@ -1400,12 +1229,12 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
           }
         : null;
     };
-    const mainRecipient = recipientById(profileRecipients.to);
+    const mainRecipient = recipientById(selectedRecipients.to);
     const recipients = [
       ...(mainRecipient?.email
         ? [{ role: "To" as const, ...mainRecipient }]
         : []),
-      ...profileRecipients.cc
+      ...selectedRecipients.cc
         .map(recipientById)
         .filter(
           (recipient): recipient is { email: string; name: string } =>
@@ -1413,15 +1242,18 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
         )
         .map((recipient) => ({ role: "CC" as const, ...recipient })),
     ];
-    onSave({
+    const saved = onSave({
+      ...initial,
       id: number.trim(),
       customerId: customer.id,
       customer: customer.name,
+      subcontractId: subcontract?.id,
+      subcontract: subcontract?.name,
       date,
       expiry,
       total,
-      status,
-      discount,
+      status: "Draft",
+      discount: roundMoney(discount),
       taxRate,
       customerEmail: customer.email,
       customerPhone: customer.phone,
@@ -1430,6 +1262,7 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
         .join(", "),
       recipients,
       lines: lines.map((line) => ({
+        catalogId: line.catalogId,
         itemNo: line.itemNo,
         description: line.description,
         quantity: line.quantity,
@@ -1438,7 +1271,7 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
         attributes: line.attributes,
       })),
     });
-    navigate("/sales/quotations");
+    if (saved) navigate("/sales/quotations/" + encodeURIComponent(number.trim()) + (status === "Sent" ? "?email=1" : ""));
   };
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 5 }, maxWidth: 1320, mx: "auto" }}>
@@ -1446,11 +1279,11 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
         <Link to="/sales/quotations" style={{ color: "#71869a" }}>
           Quotations
         </Link>
-        <Typography>New quotation</Typography>
+        <Typography>{initial ? "Edit draft" : "New quotation"}</Typography>
       </Breadcrumbs>
       <SectionTitle
         eyebrow="Quotation workflow"
-        title="Create quotation"
+        title={initial ? "Edit draft quotation" : "Create quotation"}
         description="Enter the customer and dates, confirm the email recipients, then add the quoted items."
         action={<Button component={Link} to="/sales/quotations">Cancel</Button>}
       />
@@ -1460,6 +1293,8 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
         </Alert>
       )}
       <Stack spacing={3}>
+          {initial && !customer && <Alert severity="warning">The saved customer is unavailable or inactive. Select an active company before saving.</Alert>}
+          {initial && customer && customer.id === initial.customerId && initial.recipients?.some(recipient => ![customer.email, ...customer.contacts.map(contact => contact.email)].some(email => email.toLowerCase() === recipient.email.toLowerCase())) && <Alert severity="warning">Some saved recipients are no longer listed under this company. Review and reselect recipients before saving. Previously saved: {initial.recipients.map(recipient => `${recipient.role}: ${recipient.email}`).join('; ')}</Alert>}
           <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2.5 }}>
               <Chip label="1" color="primary" size="small" />
@@ -1504,6 +1339,7 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
                   value={customer}
                   onChange={(_, company) => {
                     setCustomerId(company?.id || "");
+                    setSubcontractId("");
                     setProfileRecipients({ to: "", cc: [] });
                   }}
                   getOptionLabel={(company) => company.name}
@@ -1518,6 +1354,7 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
                         company.phone,
                         company.address,
                         company.city,
+                        ...(company.subcontracts || []).map(item => item.name),
                       ]
                         .join(" ")
                         .toLowerCase()
@@ -1532,15 +1369,17 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
                       placeholder="Search company"
                     />
                   )}
+                  renderOption={(props, company) => <li {...props}><Typography>{company.name}</Typography>{company.subcontracts?.length ? <Typography variant="caption" color="text.secondary">{company.subcontracts.length} subcontract{company.subcontracts.length === 1 ? "" : "s"}</Typography> : null}</li>}
                 />
               </Grid>
             </Grid>
-            {customer && <Box sx={{ mt: 2, p: 2, borderRadius: 1.5, bgcolor: "#f7f9fb" }}><Typography fontWeight={700}>{customer.name}</Typography><Typography variant="body2" color="text.secondary">{[customer.address, customer.city].filter(Boolean).join(", ") || "No address recorded"}</Typography><Typography variant="body2" color="text.secondary">{[customer.email, customer.phone].filter(Boolean).join(" · ") || "No main contact details recorded"}</Typography></Box>}
+            {customer && <Box sx={{ mt: 2, p: 2, borderRadius: 1.5, bgcolor: "#f7f9fb" }}><Typography fontWeight={700}>{customer.name}</Typography><Typography variant="body2" color="text.secondary">{[customer.address, customer.city].filter(Boolean).join(", ") || "No address recorded"}</Typography><Typography variant="body2" color="text.secondary">{[customer.email, customer.phone].filter(Boolean).join(" · ") || "No main contact details recorded"}</Typography>{customer.subcontracts?.length ? <Select fullWidth size="small" sx={{ mt: 2 }} displayEmpty value={subcontractId} onChange={event => setSubcontractId(event.target.value)}><MenuItem value="">Select subcontract</MenuItem>{customer.subcontracts.map(item => <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>)}</Select> : null}</Box>}
             <Divider sx={{ my: 3 }} />
             <Typography variant="subtitle1" fontWeight={700}>Email recipients</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: customer ? 0 : 2 }}>Recipients belong to the selected customer company.</Typography>
             {customer ? (
               <QuotationRecipients
+                savedRecipients={customerId === initial?.customerId ? initial?.recipients || [] : undefined}
                 key={customer.id}
                 companyId={customer.id}
                 onChange={setProfileRecipients}
@@ -1563,7 +1402,7 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
               <Paper variant="outlined" sx={{ p: 3, bgcolor: "#fff" }}>
                 <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} spacing={2}>
                   <Box><Typography variant="subtitle1" fontWeight={700}>Add a line manually</Typography><Typography variant="body2" color="text.secondary">Use this for a custom product, service or BOQ line that is not in the Excel list.</Typography></Box>
-                  <Button variant="outlined" startIcon={<AddRoundedIcon />} disabled={!!manualLine} onClick={() => { setManualLine(emptyManualLine()); setManualLineError(""); }}>Add manual line</Button>
+                  <Button variant="outlined" startIcon={<AddRoundedIcon />} disabled={!!manualLine} onClick={() => { setManualLine(emptyManualLine()); setManualColumns(extraColumns); setNewManualColumn(""); setManualLineError(""); }}>Add manual line</Button>
                 </Stack>
                 <Collapse in={!!manualLine} unmountOnExit>
                   {manualLine && <Box sx={{ mt: 3, pt: 3, borderTop: "1px solid", borderColor: "divider" }}>
@@ -1573,9 +1412,11 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
                       <Grid item xs={12} sm={9}><TextField fullWidth required label="Description" value={manualLine.description} onChange={(event) => setManualLine({ ...manualLine, description: event.target.value })} /></Grid>
                       <Grid item xs={6} sm={3}><TextField fullWidth label="Unit" value={manualLine.unit} onChange={(event) => setManualLine({ ...manualLine, unit: event.target.value })} /></Grid>
                       <Grid item xs={6} sm={3}><TextField fullWidth required type="number" label="Quantity" value={manualLine.quantity} onChange={(event) => setManualLine({ ...manualLine, quantity: Number(event.target.value) })} /></Grid>
-                      <Grid item xs={12} sm={3}><TextField fullWidth required type="number" label="Rate" value={manualLine.unitPrice} onChange={(event) => setManualLine({ ...manualLine, unitPrice: Number(event.target.value) })} /></Grid>
+                      <Grid item xs={12} sm={3}><TextField fullWidth required type="number" label="Rate" value={Number.isNaN(manualLine.unitPrice) ? "" : manualLine.unitPrice} onChange={(event) => setManualLine({ ...manualLine, unitPrice: event.target.value === "" ? NaN : Number(event.target.value) })} /></Grid>
                       <Grid item xs={12} sm={3}><Box sx={{ px: 1, py: 1 }}><Typography variant="caption" color="text.secondary">Line total</Typography><Typography fontWeight={700}>${(manualLine.quantity * manualLine.unitPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography></Box></Grid>
+                      {manualColumns.map(column => <Grid item xs={12} sm={4} key={column}><TextField fullWidth label={column} value={String(manualLine.attributes[column] ?? "")} onChange={event => updateManualAttribute(column, event.target.value)} /></Grid>)}
                     </Grid>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mt: 2 }}><TextField size="small" label="New custom column" value={newManualColumn} onChange={event => setNewManualColumn(event.target.value)} /><Button variant="outlined" onClick={addManualColumn}>Add column</Button></Stack>
                     <Stack direction="row" spacing={1} sx={{ mt: 2 }}><Button variant="contained" onClick={addManualLine}>Add to quotation</Button><Button onClick={() => { setManualLine(null); setManualLineError(""); }}>Cancel</Button></Stack>
                   </Box>}
                 </Collapse>
@@ -1584,16 +1425,17 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
             <Box sx={{ px: { xs: 2, sm: 3 }, pt: 3 }}><Typography variant="subtitle1" fontWeight={700}>Quotation lines</Typography><Typography variant="body2" color="text.secondary">{lines.length ? `${lines.length} line${lines.length === 1 ? "" : "s"} added` : "No lines added yet"}</Typography></Box>
             {!lines.length && <Alert severity="info" sx={{ m: 3 }}>Add rows from the Excel preview or create a manual line.</Alert>}
             {lines.map((line, index) => {
-              const exceeds =
-                line.available !== null && line.quantity > line.available;
+              const available = line.catalogId ? items.find(item => item.id === line.catalogId)?.available : null;
+              const combinedQuantity = line.catalogId ? lines.filter(item => item.catalogId === line.catalogId).reduce((sum, item) => sum + item.quantity, 0) : line.quantity;
+              const exceeds = available === undefined || (available !== null && combinedQuantity > available);
               return (
                 <Box
                   sx={{ px: { xs: 2, sm: 3 }, py: 2.5, borderBottom: index < lines.length - 1 ? "1px solid" : 0, borderColor: "divider" }}
-                  key={`${line.catalogId}-${index}`}
+                  key={line.id}
                 >
                   <Grid container spacing={2} alignItems="flex-start">
                     <Grid item xs={12} sm="auto"><Box sx={{ width: 28, height: 28, borderRadius: "50%", bgcolor: "#edf5fb", color: "primary.main", display: "grid", placeItems: "center", fontWeight: 700 }}>{index + 1}</Box></Grid>
-                    <Grid item xs={12} sm><Typography fontWeight={600}>{line.itemNo ? `${line.itemNo} · ` : ""}{line.description}</Typography><Typography variant="caption" color="text.secondary">{line.source === "catalog" ? "Excel/catalog line" : "Manual line"}</Typography></Grid>
+                    <Grid item xs={12} sm><TextField fullWidth label="Description" value={line.description} onChange={event => updateLine(line.id, { description: event.target.value })} /><Typography variant="caption" color="text.secondary">{line.source === "catalog" ? "Excel/catalog line" : "Manual line"}</Typography></Grid>
                     <Grid item xs={6} sm={2}>
                       <TextField
                         fullWidth
@@ -1602,18 +1444,18 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
                         value={line.quantity}
                         onChange={(event) =>
                             updateLine(line.id, {
-                              quantity: Math.max(1, Number(event.target.value)),
+                              quantity: Number(event.target.value),
                           })
                         }
                         error={exceeds}
                         helperText={
-                          line.available === null
+                          available === undefined ? "Catalog item removed" : available === null
                             ? "No stock limit"
-                            : `Available: ${line.available}`
+                            : `Available: ${available}; quoted: ${combinedQuantity}`
                         }
                       />
                     </Grid>
-                    <Grid item xs={6} sm={2}><Typography variant="caption" color="text.secondary">Unit / rate</Typography><Typography fontWeight={600}>{line.unit || "-"}</Typography><Typography variant="body2" color="text.secondary">${line.unitPrice.toLocaleString()}</Typography></Grid>
+                    <Grid item xs={6} sm={2}><Typography variant="caption" color="text.secondary">Unit / rate</Typography><TextField fullWidth size="small" label="Unit" value={line.unit} onChange={event => updateLine(line.id, { unit: event.target.value })} /><TextField fullWidth size="small" sx={{ mt: 1 }} label="Rate" type="number" value={Number.isNaN(line.unitPrice) ? "" : line.unitPrice} onChange={event => updateLine(line.id, { unitPrice: event.target.value === "" ? NaN : Number(event.target.value) })} /></Grid>
                     <Grid item xs={12} sm={2}><Typography variant="caption" color="text.secondary">Line total</Typography><Typography fontWeight={700}>${(line.unitPrice * line.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Typography>
                       <Button color="error" size="small" sx={{ mt: 0.5, minWidth: 0 }} onClick={() => setLines((current) => current.filter((entry) => entry.id !== line.id))}>Remove</Button>
                     </Grid>
@@ -1625,6 +1467,8 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
 
           <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
             <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}><Chip label="3" color="primary" size="small" /><Box><Typography variant="h6" fontWeight={700}>Summary and actions</Typography><Typography variant="body2" color="text.secondary">Review the quotation total before saving or sending.</Typography></Box></Stack>
+            {totalsError && <Alert severity="error" sx={{ mb: 2 }}>{totalsError}</Alert>}
+            {inventoryError && <Alert severity="error" sx={{ mb: 2 }}>{inventoryError}</Alert>}
             <Grid container spacing={3} alignItems="stretch">
               <Grid item xs={12} md={4}><Paper variant="outlined" sx={{ p: 2.5, height: "100%", bgcolor: "#f7f9fb" }}><Typography variant="subtitle2" color="text.secondary" gutterBottom>Quotation</Typography><Stack spacing={1}><Typography variant="body2"><strong>Customer:</strong> {customer?.name || "Not selected"}</Typography><Typography variant="body2"><strong>Lines:</strong> {lines.length}</Typography><Typography variant="body2"><strong>Valid until:</strong> {expiry || "Not set"}</Typography></Stack></Paper></Grid>
               <Grid item xs={12} sm={6} md={4}><Stack spacing={2}><TextField fullWidth label="Discount" type="number" value={discount} onChange={(event) => setDiscount(Math.max(0, Number(event.target.value)))} /><TextField fullWidth label="Tax %" type="number" value={taxRate} onChange={(event) => setTaxRate(Math.max(0, Number(event.target.value)))} /></Stack></Grid>
@@ -1633,22 +1477,22 @@ function QuotationForm({ onSave }: { onSave: (quotation: Quote) => void }) {
             <Stack direction={{ xs: "column-reverse", sm: "row" }} justifyContent="flex-end" spacing={1} sx={{ mt: 3 }}>
               <Button
                 variant="outlined"
-                disabled={invalidStock || !customer || !lines.length}
+                disabled={!!manualLine || !!totalsError || invalidStock || !customer || !lines.length}
                 onClick={() => save("Draft")}
               >
-                Save as draft
+                {initial ? "Save changes" : "Save as draft"}
               </Button>
               <Button
                 variant="contained"
                 disabled={
-                  invalidStock ||
+                  !!manualLine || !!totalsError || invalidStock ||
                   !customer ||
                   !lines.length ||
                   !profileRecipients.to
                 }
                 onClick={() => save("Sent")}
               >
-                Save & send
+                Save & prepare email
               </Button>
               </Stack>
           </Paper>
@@ -1690,8 +1534,8 @@ function Orders() {
     <Box sx={{ p: { xs: 3, md: 5 } }}>
       <SectionTitle
         eyebrow="Sales workspace"
-        title="Sales Orders"
-        description="Track accepted quotations through confirmation, processing and completion."
+        title="Purchase Orders"
+        description="Sample purchase orders. Quotation conversion and order processing are not connected yet."
       />
       <Paper
         variant="outlined"
@@ -1709,7 +1553,7 @@ function Orders() {
         <Table>
           <TableHead sx={{ bgcolor: "#f7f9fb" }}>
             <TableRow>
-              <TableCell>Order number</TableCell>
+              <TableCell>Purchase order number</TableCell>
               <TableCell>Customer</TableCell>
               <TableCell>Order date</TableCell>
               <TableCell>Quotation</TableCell>
@@ -1747,12 +1591,23 @@ function Orders() {
   );
 }
 
+function Invoices() {
+  return <Box sx={{ p: { xs: 3, md: 5 } }}><SectionTitle eyebrow="Sales workspace" title="Invoices" /></Box>;
+}
+
+function QuotationEditRoute({ list, onSave }: { list: Quote[]; onSave: (id: string, quotation: Quote) => boolean }) {
+  const { quotationId } = useParams();
+  const quotation = list.find(q => q.id === quotationId);
+  if (!quotation || quotation.status !== 'Draft') return <Box sx={{ p: 4 }}><Alert severity="warning">{quotation ? 'Only draft quotations can be edited.' : 'Quotation not found.'}</Alert><Button component={Link} to="/sales/quotations">Back to quotations</Button></Box>;
+  return <QuotationForm key={quotation.id} initial={quotation} onSave={updated => onSave(quotation.id, updated)} />;
+}
+
 function QuotationDetailRoute({
   list,
   onStatusChange,
 }: {
   list: Quote[];
-  onStatusChange: (id: string, status: Status) => void;
+  onStatusChange: (id: string, status: Status, recipients?: Quote['recipients']) => boolean;
 }) {
   const { quotationId } = useParams();
   return (
@@ -1764,42 +1619,35 @@ function QuotationDetailRoute({
 }
 
 export default function App() {
-  const [quotations, setQuotations] = useState(quotesSeed);
-  const addQuotation = (quotation: Quote) =>
-    setQuotations((current) => [
-      quotation,
-      ...current.filter((existing) => existing.id !== quotation.id),
-    ]);
-  const updateQuotationStatus = (id: string, status: Status) =>
-    setQuotations((current) =>
-      current.map((quotation) =>
-        quotation.id === id
-          ? {
-              ...quotation,
-              status,
-              statusDate:
-                status === "Accepted" || status === "Rejected"
-                  ? new Date().toISOString()
-                  : undefined,
-            }
-          : quotation,
-      ),
-    );
+  const { value: quotations, commit: saveQuotations, error: quotationError } = usePersistentState<Quote[]>('goelta.quotations.v1', quotesSeed, validQuotes);
+  const addQuotation = (quotation: Quote) => saveQuotations(current => insertQuotation(current, quotation));
+  const saveDraft = (id: string, quotation: Quote) => saveQuotations(current => updateDraft(current, id, quotation));
+  const updateQuotationStatus = (id: string, status: Status, recipients?: Quote['recipients']) => saveQuotations(current => current.map(q => {
+    if (q.id !== id) return q;
+    if (!canTransition(q.status, status)) throw Error('That status change is not allowed.');
+    const date = new Date().toISOString();
+    return { ...q, status, statusDate: date, recipients: recipients ?? q.recipients, statusHistory: [...(q.statusHistory || []), { status, date }] };
+  }));
   return (
     <CustomerProvider>
       <CatalogProvider>
         <Shell>
+          {quotationError && <Alert severity="error">{quotationError}</Alert>}
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/sales" element={<SalesDashboard />} />
             <Route path="/sales/customers" element={<Customers />} />
             <Route
               path="/sales/quotations"
-              element={<Quotations list={quotations} setList={setQuotations} />}
+              element={<Quotations list={quotations} />}
             />
             <Route
               path="/sales/quotations/new"
-              element={<QuotationForm onSave={addQuotation} />}
+              element={<QuotationForm key="new" onSave={addQuotation} />}
+            />
+            <Route
+              path="/sales/quotations/:quotationId/edit"
+              element={<QuotationEditRoute list={quotations} onSave={saveDraft} />}
             />
             <Route
               path="/sales/quotations/:quotationId"
@@ -1810,7 +1658,8 @@ export default function App() {
                 />
               }
             />
-            <Route path="/sales/orders" element={<Orders />} />
+            <Route path="/sales/purchase-orders" element={<Orders />} />
+            <Route path="/sales/invoices" element={<Invoices />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Shell>
