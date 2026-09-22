@@ -84,6 +84,8 @@ type Status = "Draft" | "Sent" | "Accepted" | "Rejected" | "Hold";
 const catalogTemplateStorageKey = "goelta.catalog-template.extra-columns.v1";
 export type Quote = {
   id: string;
+  title?: string;
+  description?: string;
   customerId?: string;
   customer: string;
   subcontractId?: string;
@@ -979,7 +981,7 @@ function Quotations({
   const [status, setStatus] = useState("All");
   const filtered = list.filter(
     (q) =>
-      `${q.id} ${q.customer}`.toLowerCase().includes(search.toLowerCase()) &&
+      `${q.id} ${q.title || ""} ${q.description || ""} ${q.customer}`.toLowerCase().includes(search.toLowerCase()) &&
       (status === "All" || q.status === status),
   );
   return (
@@ -1043,7 +1045,7 @@ function Quotations({
           <TableBody>
             {filtered.map((q) => (
               <TableRow key={q.id} hover>
-                <TableCell sx={{ fontWeight: 700 }}>{q.id}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}><Typography fontWeight={700}>{q.id}</Typography>{q.title && <Typography variant="body2">{q.title}</Typography>}{q.description && <Typography variant="caption" color="text.secondary" display="block" sx={{ maxWidth: 280 }}>{q.description}</Typography>}</TableCell>
                 <TableCell><Typography>{q.customer}</Typography>{q.subcontract && <Typography variant="caption" color="text.secondary" display="block">{q.subcontract}</Typography>}</TableCell>
                 <TableCell>{q.date}</TableCell>
                 <TableCell>{q.expiry}</TableCell>
@@ -1122,6 +1124,8 @@ function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => bool
   const today = localDate();
   const defaultExpiry = localDate(30);
   const [number, setNumber] = useState(() => initial?.id || 'SQ-' + new Date().getFullYear() + '-' + crypto.randomUUID().slice(0, 8).toUpperCase());
+  const [title, setTitle] = useState(initial?.title || "");
+  const [description, setDescription] = useState(initial?.description || "");
   const [date, setDate] = useState(initial?.date || today);
   const [expiry, setExpiry] = useState(initial?.expiry || defaultExpiry);
   const [customerId, setCustomerId] = useState(initial?.customerId || "");
@@ -1201,7 +1205,7 @@ function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => bool
     if (manualLine) return setError("Finish or cancel the manual line before saving.");
     if (totalsError) return setError(totalsError);
     if (lines.some(line => !line.description.trim() || !line.unit.trim())) return setError("Each line needs a description and unit.");
-    if (!number.trim() || !validDate(date) || !validDate(expiry) || !customer || (!!customer.subcontracts?.length && !subcontract) || !lines.length)
+    if (!number.trim() || !title.trim() || !validDate(date) || !validDate(expiry) || !customer || (!!customer.subcontracts?.length && !subcontract) || !lines.length)
       return setError(
         "Enter quotation details, select an active customer, and add at least one item.",
       );
@@ -1245,6 +1249,8 @@ function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => bool
     const saved = onSave({
       ...initial,
       id: number.trim(),
+      title: title.trim(),
+      description: description.trim(),
       customerId: customer.id,
       customer: customer.name,
       subcontractId: subcontract?.id,
@@ -1331,6 +1337,12 @@ function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => bool
                   onChange={(event) => setExpiry(event.target.value)}
                   InputLabelProps={{ shrink: true }}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth required label="Quotation title" value={title} onChange={(event) => setTitle(event.target.value)} />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField fullWidth label="Quotation description" multiline minRows={2} value={description} onChange={(event) => setDescription(event.target.value)} />
               </Grid>
               <Grid item xs={12}>
                 <Autocomplete
@@ -1591,8 +1603,33 @@ function Orders() {
   );
 }
 
+type InvoiceLine = { id: string; description: string; quantity: number; unitPrice: number };
+
 function Invoices() {
-  return <Box sx={{ p: { xs: 3, md: 5 } }}><SectionTitle eyebrow="Sales workspace" title="Invoices" /></Box>;
+  const [number, setNumber] = useState(() => "INV-" + new Date().getFullYear() + "-001");
+  const [customer, setCustomer] = useState("");
+  const [notes, setNotes] = useState("");
+  const [lines, setLines] = useState<InvoiceLine[]>([{ id: crypto.randomUUID(), description: "", quantity: 1, unitPrice: 0 }]);
+  const [saved, setSaved] = useState<{ number: string; customer: string; notes: string; lines: InvoiceLine[] } | null>(null);
+  const total = lines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
+  const updateLine = (id: string, patch: Partial<InvoiceLine>) => setLines(current => current.map(line => line.id === id ? { ...line, ...patch } : line));
+  const addLine = () => setLines(current => [...current, { id: crypto.randomUUID(), description: "", quantity: 1, unitPrice: 0 }]);
+  return <Box sx={{ p: { xs: 3, md: 5 }, maxWidth: 1200 }}>
+    <SectionTitle eyebrow="Sales workspace" title="Invoices" description="Create invoices and add customer-facing notes below the products table." />
+    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}><TextField fullWidth label="Invoice number" value={number} onChange={event => setNumber(event.target.value)} /></Grid>
+        <Grid item xs={12} sm={6}><TextField fullWidth label="Customer" value={customer} onChange={event => setCustomer(event.target.value)} /></Grid>
+      </Grid>
+      <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>Products</Typography>
+      <Table size="small"><TableHead><TableRow><TableCell>Description</TableCell><TableCell width={120}>Quantity</TableCell><TableCell width={160}>Unit price</TableCell><TableCell align="right">Amount</TableCell></TableRow></TableHead><TableBody>{lines.map(line => <TableRow key={line.id}><TableCell><TextField fullWidth size="small" label="Product or service" value={line.description} onChange={event => updateLine(line.id, { description: event.target.value })} /></TableCell><TableCell><TextField fullWidth size="small" type="number" inputProps={{ min: 1 }} value={line.quantity} onChange={event => updateLine(line.id, { quantity: Number(event.target.value) })} /></TableCell><TableCell><TextField fullWidth size="small" type="number" inputProps={{ min: 0, step: "0.01" }} value={line.unitPrice} onChange={event => updateLine(line.id, { unitPrice: Number(event.target.value) })} /></TableCell><TableCell align="right">${(line.quantity * line.unitPrice).toFixed(2)}</TableCell></TableRow>)}</TableBody></Table>
+      <Button sx={{ mt: 2 }} startIcon={<AddRoundedIcon />} onClick={addLine}>Add product</Button>
+      <TextField fullWidth multiline minRows={3} label="Notes" helperText="Shown underneath the products table" value={notes} onChange={event => setNotes(event.target.value)} sx={{ mt: 3 }} />
+      <Typography textAlign="right" fontWeight={700} sx={{ mt: 2 }}>Total: ${total.toFixed(2)}</Typography>
+      <Button variant="contained" sx={{ mt: 2 }} onClick={() => setSaved({ number: number.trim(), customer: customer.trim(), notes: notes.trim(), lines: lines.map(line => ({ ...line })) })}>Save invoice</Button>
+    </Paper>
+    {saved && <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}><Typography variant="h5" gutterBottom>{saved.number || "Invoice"}</Typography><Typography color="text.secondary" gutterBottom>{saved.customer || "Customer not recorded"}</Typography><Table size="small"><TableHead><TableRow><TableCell>Product</TableCell><TableCell>Quantity</TableCell><TableCell align="right">Amount</TableCell></TableRow></TableHead><TableBody>{saved.lines.map(line => <TableRow key={line.id}><TableCell>{line.description || "Unnamed product"}</TableCell><TableCell>{line.quantity}</TableCell><TableCell align="right">${(line.quantity * line.unitPrice).toFixed(2)}</TableCell></TableRow>)}</TableBody></Table>{saved.notes && <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid", borderColor: "divider" }}><Typography variant="subtitle2">Notes</Typography><Typography sx={{ whiteSpace: "pre-line" }}>{saved.notes}</Typography></Box>}</Paper>}
+  </Box>;
 }
 
 function QuotationEditRoute({ list, onSave }: { list: Quote[]; onSave: (id: string, quotation: Quote) => boolean }) {

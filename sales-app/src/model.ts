@@ -1,0 +1,118 @@
+export type Contact = {
+  id: string;
+  name: string;
+  position: string;
+  email: string;
+  phone: string;
+};
+export type Profile = { id: string; name: string; to: string; cc: string[] };
+export type Company = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  status: "Active" | "Inactive";
+  contacts: Contact[];
+  profiles: Profile[];
+  defaultProfileId: string;
+};
+export type CatalogItem = {
+  id: string;
+  itemNo: string;
+  type: "Product" | "Service";
+  description: string;
+  category: string;
+  unit: string;
+  rate: number;
+  available: number | null;
+  name: string;
+  price: number;
+  attributes: Record<string, string | number>;
+};
+export type Line = {
+  id: string;
+  kind: "product" | "section" | "note";
+  catalogId?: string;
+  itemNo: string;
+  description: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  attributes: Record<string, string | number>;
+};
+export type Recipient = { role: "To" | "CC"; email: string; name?: string };
+export type Event = { id: string; date: string; message: string };
+export type SaleStatus =
+  "Draft" | "Sent" | "Hold" | "Accepted" | "Rejected" | "Cancelled";
+export type Sale = {
+  id: string;
+  number: string;
+  title: string;
+  description: string;
+  customerId: string;
+  customer: string;
+  customerEmail: string;
+  customerPhone: string;
+  customerAddress: string;
+  date: string;
+  expiry: string;
+  status: SaleStatus;
+  lines: Line[];
+  discount: number;
+  taxRate: number;
+  notes: string;
+  recipients: Recipient[];
+  history: Event[];
+  isDemo?: boolean;
+};
+export type Payment = {
+  id: string;
+  date: string;
+  amount: number;
+  reference: string;
+};
+export type Invoice = {
+  id: string;
+  number: string;
+  saleId: string;
+  customer: string;
+  customerAddress: string;
+  customerEmail: string;
+  date: string;
+  dueDate: string;
+  status: "Draft" | "Posted" | "Cancelled";
+  kind: "regular" | "downpayment";
+  lines: Line[];
+  discount: number;
+  taxRate: number;
+  deduction: number;
+  deductionTax: number;
+  notes: string;
+  payments: Payment[];
+  history: Event[];
+};
+export type Purchase = {
+  id: string;
+  number: string;
+  saleId?: string;
+  vendor: string;
+  vendorEmail: string;
+  date: string;
+  expectedDate: string;
+  status: "RFQ" | "RFQ Sent" | "Purchase Order" | "Received" | "Cancelled";
+  lines: Line[];
+  taxRate: number;
+  notes: string;
+  history: Event[];
+};
+export type Workspace = {
+  version: 1;
+  companies: Company[];
+  products: CatalogItem[];
+  extraColumns: string[];
+  sales: Sale[];
+  invoices: Invoice[];
+  purchases: Purchase[];
+};

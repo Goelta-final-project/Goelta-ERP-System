@@ -52,6 +52,7 @@ export function validQuotes(value: unknown): value is Quote[] {
   return value.every(q => {
     if (!isRecord(q) || !['id', 'customer', 'date', 'expiry'].every(k => typeof q[k] === 'string') || !['Draft', 'Sent', 'Hold', 'Accepted', 'Rejected'].includes(String(q.status))) return false;
     if (!(q.id as string).trim() || !validDate(q.date as string) || !validDate(q.expiry as string) || (q.expiry as string) < (q.date as string)) return false;
+    if (!['title', 'description'].every(k => q[k] === undefined || typeof q[k] === 'string')) return false;
     if (!['customerId', 'customerEmail', 'customerPhone', 'customerAddress', 'statusDate'].every(k => q[k] === undefined || typeof q[k] === 'string')) return false;
     if (q.subcontractId !== undefined && (typeof q.subcontractId !== 'string' || !q.subcontractId.trim()) || q.subcontract !== undefined && (typeof q.subcontract !== 'string' || !q.subcontract.trim())) return false;
     if (q.isDemo !== undefined && typeof q.isDemo !== 'boolean') return false;

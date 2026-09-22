@@ -19,7 +19,8 @@ export function createQuotationPdf(q: Quote) {
     styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak' },
     columnStyles: { 0: { cellWidth: 42, fontStyle: 'bold', textColor: [90, 105, 120] } },
     body: [
-      ['Quotation number', q.id], ['Date / valid until', `${q.date} / ${q.expiry}`], ['Status', q.status],
+      ['Quotation title', q.title || 'Not recorded'], ['Description', q.description || 'Not recorded'],
+      ['Quotation number', q.id], ['Date / valid until', `${q.date} / ${q.expiry}`],
       ['Customer company', q.customer], ['Address', q.customerAddress || 'Not recorded'],
       ['Company email', q.customerEmail || 'Not recorded'], ['Company phone', q.customerPhone || 'Not recorded'],
     ],

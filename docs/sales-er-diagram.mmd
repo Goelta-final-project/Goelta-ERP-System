@@ -1,0 +1,132 @@
+erDiagram
+ direction LR
+ company["Customer company - current"] {
+  string id PK
+  string name
+  string email
+  string phone
+  string address
+  string city
+  string status
+  string defaultProfileId "Optional profile reference"
+ }
+ contact["Contact - embedded"] {
+  string id
+  string name
+  string position
+  string email
+  string phone
+ }
+ subcontract["Subcontract - embedded"] {
+  string id
+  string name
+ }
+ profile["Recipient profile - embedded"] {
+  string id
+  string name
+  string to "Contact ID or company"
+  string_array cc "Contact IDs or company"
+ }
+ catalog["Catalog item - current"] {
+  string id PK
+  string itemNo
+  string type "Product or Service"
+  string description
+  string category
+  string unit
+  decimal rate
+  decimal available "Null for services"
+  json attributes
+ }
+ quote["Quotation - current"] {
+  string id PK
+  string customerId FK "Optional in current records"
+  string subcontractId "Optional scoped reference"
+  string customer "Name snapshot"
+  date date
+  date expiry
+  string status
+  decimal discount
+  decimal taxRate
+  decimal total
+ }
+ quoteLine["Quotation line - embedded"] {
+  string catalogId FK "Optional for manual lines"
+  string itemNo
+  string description
+  decimal quantity
+  string unit
+  decimal unitPrice
+  json attributes
+ }
+ recipient["Quotation recipient - embedded"] {
+  string role "To or CC"
+  string email
+  string name
+ }
+ history["Quotation status history - embedded"] {
+  string status
+  datetime date
+ }
+ po["Customer purchase order - proposed; sample UI exists"] {
+  string id PK
+  string customerId FK
+  string quotationId FK
+  string subcontractId "Optional scoped reference"
+  date date
+  string status
+  decimal discount
+  decimal taxRate
+  decimal total
+ }
+ poLine["Purchase order line - proposed"] {
+  string id PK
+  string purchaseOrderId FK
+  string catalogId FK "Nullable"
+  string description
+  decimal quantity
+  string unit
+  decimal unitPrice
+  json attributes
+ }
+ invoice["Invoice - proposed; UI placeholder"] {
+  string id PK
+  string customerId FK
+  string quotationId FK
+  string purchaseOrderId FK "Nullable for direct quotation invoicing"
+  date date
+  date dueDate
+  string status
+  decimal discount
+  decimal taxRate
+  decimal total
+ }
+ invoiceLine["Invoice line - proposed"] {
+  string id PK
+  string invoiceId FK
+  string catalogId FK "Nullable"
+  string description
+  decimal quantity
+  string unit
+  decimal unitPrice
+  json attributes
+ }
+ company ||--o{ contact : "contains"
+ company ||--o{ subcontract : "contains"
+ company ||--o{ profile : "contains"
+ company o|..o{ quote : "referenced by"
+ subcontract o|..o{ quote : "selected for"
+ quote ||--o{ quoteLine : "contains"
+ catalog o|..o{ quoteLine : "optional source"
+ quote ||--o{ recipient : "snapshots recipients"
+ quote ||--o{ history : "records transitions"
+ company ||..o{ po : "places proposed"
+ quote ||..o{ po : "converts when accepted"
+ subcontract o|..o{ po : "selected proposed"
+ po ||--|{ poLine : "contains proposed"
+ catalog o|..o{ poLine : "optional source"
+ company ||..o{ invoice : "billed proposed"
+ quote ||..o{ invoice : "origin proposed"
+ po o|..o| invoice : "billed by proposed"
+ invoice ||--|{ invoiceLine : "contains proposed"
+ catalog o|..o{ invoiceLine : "optional source"

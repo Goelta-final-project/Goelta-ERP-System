@@ -1,3 +1,4 @@
-1. Remove that send button from drafts in actions in quotations list
+1. Quotation title and description must be added to the create quotation and the quotation lists. The title and description must be shown in the quotation. Quotation status doesnt need to be shown in the quotation pdf.
 
-2. When adding a customer, there should be an option to add subcontracts if there are any. Then when selecting the customer, subcontract should be also selected and when showing customer on lists, the subcontract must be shown under it.
+2. There should be an option in invoices to add a text underneath the products table such as notes.
+
