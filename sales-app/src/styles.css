@@ -1,12 +1,13 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&display=swap");
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 :root {
   font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+          "DM Sans",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
   color: #30333b;
   background: #f6f7f9;
   font-synthesis: none;
@@ -22,6 +23,8 @@
 }
 body {
   margin: 0;
+  background: #f6f7f9;
+  color: #30333b;
 }
 button,
 input,
@@ -387,6 +390,7 @@ main {
 .mono {
   font-variant-numeric: tabular-nums;
   font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
 }
 .summary-strip {
   display: grid;
@@ -1398,8 +1402,8 @@ tfoot .numeric {
   display: flex;
   gap: 17px;
   transition:
-    box-shadow 0.2s,
-    border-color 0.2s;
+          box-shadow 0.2s,
+          border-color 0.2s;
   min-width: 0;
 }
 .customer-card:hover {

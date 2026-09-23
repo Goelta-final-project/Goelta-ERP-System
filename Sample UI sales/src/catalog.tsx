@@ -20,6 +20,6 @@ const CatalogContext = createContext<{ items: CatalogItem[]; replace: (items: Ca
 export const useCatalog = () => useContext(CatalogContext);
 
 export function CatalogProvider({ children }: { children: ReactNode }) {
-  const { value: items, commit: replace, error } = usePersistentState('goelta.catalog.v1', catalogSeed, validCatalog);
+  const { value: items, commit: replace, error } = usePersistentState('goelta.sales.v1', catalogSeed, validCatalog);
   return <CatalogContext.Provider value={{ items, replace }}>{error && <Alert severity="error">{error}</Alert>}{children}</CatalogContext.Provider>;
 }

@@ -81,7 +81,7 @@ import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 
 type Status = "Draft" | "Sent" | "Accepted" | "Rejected" | "Hold";
-const catalogTemplateStorageKey = "goelta.catalog-template.extra-columns.v1";
+const catalogTemplateStorageKey = "goelta.sales-template.extra-columns.v1";
 export type Quote = {
   id: string;
   title?: string;
@@ -764,12 +764,12 @@ function ProductImport({
       const imported = parseCatalog(sheet, extraColumns);
       if (!replace(imported)) throw Error('Import was not saved. Resolve the storage error and try again.');
       setFileName(file.name); setPreviewOpen(true); setMessageSeverity('success');
-      setMessage(imported.length + ' catalog records imported and saved in this browser.');
+      setMessage(imported.length + ' sales records imported and saved in this browser.');
     } catch (error) { setMessage(error instanceof Error ? error.message : 'The workbook could not be read.'); }
     finally { setBusy(false); if (inputRef.current) inputRef.current.value = ''; }
   };
   const downloadTemplate = () => {
-    try { XLSX.writeFile(createCatalogTemplate(extraColumns), 'GOELTA-sales-catalog-template.xlsx'); }
+    try { XLSX.writeFile(createCatalogTemplate(extraColumns), 'GOELTA-sales-sales-template.xlsx'); }
     catch { setMessageSeverity('error'); setMessage('Template download failed. Please try again.'); }
   };
   return (
@@ -958,7 +958,7 @@ function CatalogTemplateBuilder({
           onClick={() => {
             if (extra.trim()) { setBuilderError('Click Add for the pending heading, or clear it before saving.'); return; }
             if (!onSave(draftColumns, draftExtras)) { setBuilderError('Template was not saved. Resolve the storage error and retry.'); return; }
-            try { XLSX.writeFile(createCatalogTemplate(draftExtras), 'GOELTA-sales-catalog-template.xlsx'); onClose(); }
+            try { XLSX.writeFile(createCatalogTemplate(draftExtras), 'GOELTA-sales-sales-template.xlsx'); onClose(); }
             catch { setBuilderError('Template saved, but download failed. Retry using Download template.'); }
           }}
           variant="contained"
@@ -1089,7 +1089,7 @@ function Quotations({
 
 type DraftQuotationLine = {
   id: string;
-  source: "catalog" | "manual";
+  source: "sales" | "manual";
   catalogId?: string;
   itemNo: string;
   description: string;
@@ -1134,7 +1134,7 @@ function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => bool
     to: string;
     cc: string[];
   }>({ to: "", cc: [] });
-  const [lines, setLines] = useState<DraftQuotationLine[]>(() => (initial?.lines || []).map(line => ({ ...line, id: crypto.randomUUID(), source: line.catalogId ? "catalog" : "manual", itemNo: line.itemNo || "", unit: line.unit || "Item", available: null, attributes: { ...line.attributes } })));
+  const [lines, setLines] = useState<DraftQuotationLine[]>(() => (initial?.lines || []).map(line => ({ ...line, id: crypto.randomUUID(), source: line.catalogId ? "sales" : "manual", itemNo: line.itemNo || "", unit: line.unit || "Item", available: null, attributes: { ...line.attributes } })));
   const [manualLine, setManualLine] = useState<DraftQuotationLine | null>(null);
   const [manualColumns, setManualColumns] = useState<string[]>(extraColumns);
   const [newManualColumn, setNewManualColumn] = useState("");
@@ -1162,7 +1162,7 @@ function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => bool
       ...current,
       {
         id: crypto.randomUUID(),
-        source: "catalog",
+        source: "sales",
         catalogId: item.id,
         itemNo: item.itemNo,
         description: item.description,
@@ -1447,7 +1447,7 @@ function QuotationForm({ onSave, initial }: { onSave: (quotation: Quote) => bool
                 >
                   <Grid container spacing={2} alignItems="flex-start">
                     <Grid item xs={12} sm="auto"><Box sx={{ width: 28, height: 28, borderRadius: "50%", bgcolor: "#edf5fb", color: "primary.main", display: "grid", placeItems: "center", fontWeight: 700 }}>{index + 1}</Box></Grid>
-                    <Grid item xs={12} sm><TextField fullWidth label="Description" value={line.description} onChange={event => updateLine(line.id, { description: event.target.value })} /><Typography variant="caption" color="text.secondary">{line.source === "catalog" ? "Excel/catalog line" : "Manual line"}</Typography></Grid>
+                    <Grid item xs={12} sm><TextField fullWidth label="Description" value={line.description} onChange={event => updateLine(line.id, { description: event.target.value })} /><Typography variant="caption" color="text.secondary">{line.source === "sales" ? "Excel/sales line" : "Manual line"}</Typography></Grid>
                     <Grid item xs={6} sm={2}>
                       <TextField
                         fullWidth

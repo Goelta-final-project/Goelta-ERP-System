@@ -83,6 +83,7 @@ export function SalesList({
       : mode === "to-invoice"
         ? "Orders to invoice"
         : "Quotations";
+
   const sortBy = (key: typeof sort) => {
     setSort(key);
     setAsc(sort === key ? !asc : true);

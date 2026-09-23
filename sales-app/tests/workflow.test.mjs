@@ -6,7 +6,7 @@ import { loadSource } from "./load-source.mjs";
 const d = loadSource("src/domain.ts");
 const storage = loadSource("src/storage.ts");
 const excel = loadSource("src/excel.ts");
-const catalog = loadSource("src/catalog-import.ts");
+const catalog = loadSource("src/sales-import.ts");
 const pdf = loadSource("src/pdf.ts");
 const sharing = loadSource("src/sharing.tsx");
 const fresh = () => storage.seedWorkspace();
@@ -281,7 +281,7 @@ test("recipient profiles support nameless contacts and deduplicate email address
   c.contacts = [];
   assert.throws(() => d.validateCompany(c), /profile/);
 });
-test("Excel catalog roundtrip preserves configured attributes and rejects invalid headings atomically", () => {
+test("Excel sales roundtrip preserves configured attributes and rejects invalid headings atomically", () => {
   const book = catalog.createCatalogTemplate(["Brand"]);
   const bytes = XLSX.write(book, { type: "buffer", bookType: "xlsx" });
   const loaded = XLSX.read(bytes);
@@ -451,7 +451,7 @@ test("storage rejects corrupt structures, orphan links, mismatched totals and du
     }),
   );
 });
-test("stock warning adds repeated product quantities but allows unlimited services", () => {
+test("stock warning adds repeated product quantities but allows unlimited api-services", () => {
   const s = fresh();
   const l = d.lineFromProduct(s.products[0]);
   const lines = [

@@ -445,9 +445,9 @@ export function initialWorkspace(storage: Pick<Storage, "getItem">): Workspace {
   const seed = seedWorkspace();
   if (storage.getItem(storageKey) !== null) return seed;
   const customers = storage.getItem("goelta.customer-companies.v1");
-  const products = storage.getItem("goelta.catalog.v1");
+  const products = storage.getItem("goelta.sales.v1");
   const quotes = storage.getItem("goelta.quotations.v1");
-  const extras = storage.getItem("goelta.catalog-template.extra-columns.v1");
+  const extras = storage.getItem("goelta.sales-template.extra-columns.v1");
   if (!customers && !products && !quotes && !extras) return seed;
   if (customers) {
     const data: unknown = JSON.parse(customers);

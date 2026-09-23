@@ -7,6 +7,7 @@ import {
   storageKey,
   validWorkspace,
 } from "./storage";
+
 type Store = {
   state: Workspace;
   error: string;
@@ -14,7 +15,9 @@ type Store = {
   clearNotice: () => void;
   transact: (change: (draft: Workspace) => void, notice?: string) => boolean;
 };
+
 const Context = createContext<Store | null>(null);
+
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [initial] = useState(() => {
     try {

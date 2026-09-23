@@ -1,35 +1,6 @@
 import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import {
-  amountDue,
-  cancelInvoice,
-  dateAfter,
-  event,
-  invoiceLabel,
-  invoiceTotal,
-  money,
-  paidAmount,
-  postInvoice,
-  registerPayment,
-} from "./domain";
-import type { Invoice } from "./model";
-import { useWorkspace } from "./store";
-import {
-  Activity,
-  Badge,
-  Button,
-  Empty,
-  Field,
-  Icon,
-  Modal,
-  PageHeader,
-  Pagination,
-  Search,
-  StatusBar,
-  Totals,
-} from "./ui";
-import { Lines } from "./lines";
-import { PdfButton } from "./sharing";
+
 
 export function InvoiceList() {
   const { state } = useWorkspace();

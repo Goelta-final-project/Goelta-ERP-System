@@ -6,6 +6,7 @@ import {
 } from "./catalog-import";
 import { lineFromProduct } from "./domain";
 import type { CatalogItem, Line } from "./model";
+
 export function downloadSchema(extras: string[], forLines = false) {
   const book = createCatalogTemplate(extras);
   if (forLines) {

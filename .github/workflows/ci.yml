@@ -1,0 +1,38 @@
+name: Frontend CI Pipeline
+
+# 1. Trigger the workflow on pushes or pull requests to key branches
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-edge: ubuntu-latest
+
+    steps:
+      # 2. Download the project code into the virtual machine
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      # 3. Install pnpm globally on the machine environment
+      - name: Setup pnpm Environment
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9 # Matches your local pnpm setup
+
+      # 4. Initialize Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      # 5. Cleanly install project dependencies
+      - name: Install Project Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 6. Verify TypeScript styles and compile the build
+      - name: Run Code Compilation & Type Checks
+        run: pnpm build

@@ -5,7 +5,7 @@ import React from 'react';
 import { create, act } from 'react-test-renderer';
 import { loadSource } from './load-source.mjs';
 const logic = loadSource('src/sales-logic.ts');
-const importer = loadSource('src/catalog-import.ts');
+const importer = loadSource('src/sales-import.ts');
 const customers = loadSource('src/customers.tsx');
 const { usePersistentState } = loadSource('src/use-persistent-state.ts');
 const { createQuotationPdf, quotationFilename } = loadSource('src/quotation-pdf.ts');
@@ -36,7 +36,7 @@ test('money rounds line amounts consistently; invalid quantities, discounts and 
   assert.throws(() => logic.calculateTotals(quote.lines, 0, 101));
   assert.throws(() => logic.calculateTotals([{ quantity: Number.MAX_VALUE, unitPrice: 100 }]));
 });
-test('stock checks total repeated catalog lines and current availability; services remain unlimited', () => {
+test('stock checks total repeated sales lines and current availability; api-services remain unlimited', () => {
   const catalog = [{ id: 'P1', available: 10 }, { id: 'S1', available: null }];
   assert.match(logic.stockError([{ catalogId: 'P1', quantity: 6 }, { catalogId: 'P1', quantity: 6 }], catalog), /combined quantity 12/);
   assert.match(logic.stockError([{ catalogId: 'missing', quantity: 1 }], catalog), /no longer available/);
