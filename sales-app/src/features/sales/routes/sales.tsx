@@ -18,9 +18,9 @@ import {
   stockWarnings,
   totals,
   transitionSale,
-} from "./domain";
-import type { Sale, SaleStatus } from "./model";
-import { useWorkspace } from "./store";
+} from "../../../types/domain";
+import type { Sale, SaleStatus } from "../../../types/model";
+import { useWorkspace } from "../../../store/store";
 import {
   Activity,
   Badge,
@@ -29,16 +29,16 @@ import {
   Field,
   Icon,
   Modal,
-  PageHeader,
   Pagination,
   Search,
   StatusBar,
   Tabs,
   Totals,
-} from "./ui";
-import { Lines } from "./lines";
-import { RecipientsEditor } from "./customers";
-import { EmailDialog, PdfButton } from "./sharing";
+} from "../../../components/ui/ui";
+import { Lines } from "../../../lines";
+import { RecipientsEditor } from "../../customers/routes/customers";
+import { EmailDialog, PdfButton } from "../../../sharing";
+import TitleHeader from "../../../components/shared/title-header";
 
 export function SalesList({
   mode = "quotations",
@@ -90,7 +90,7 @@ export function SalesList({
   };
   return (
     <>
-      <PageHeader
+      <TitleHeader
         title={title}
         count={base.length}
         subtitle={
@@ -370,7 +370,7 @@ function SaleForm({ initial }: { initial?: Sale }) {
     setBusy(true);
     setError("");
     try {
-      const { parseQuotationLines, readWorkbook } = await import("./excel");
+      const { parseQuotationLines, readWorkbook } = await import("../../../services/excel");
       const lines = parseQuotationLines(
         await readWorkbook(f),
         state.extraColumns,
@@ -527,7 +527,7 @@ function SaleForm({ initial }: { initial?: Sale }) {
                   icon="download"
                   onClick={async () => {
                     try {
-                      (await import("./excel")).downloadSchema(
+                      (await import("../../../services/excel")).downloadSchema(
                         state.extraColumns,
                         true,
                       );

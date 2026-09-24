@@ -62,7 +62,7 @@ export const SalesTrendChart: React.FC = () => {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto">
+            <div className="w-full">
                 <svg
                     viewBox={`0 0 ${width} ${height}`}
                     className="w-full h-56 text-slate-400 overflow-visible"

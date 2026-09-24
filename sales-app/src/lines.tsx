@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { CatalogItem, Line } from "./model";
-import { blankLine, lineFromProduct, money, roundMoney } from "./domain";
-import { Button, Icon, Modal, Field } from "./ui";
+import type { CatalogItem, Line } from "./types/model";
+import { blankLine, lineFromProduct, money, roundMoney } from "./types/domain";
+import { Button, Icon, Modal, Field } from "././components/ui/ui";
 
 export function Lines({
   lines,

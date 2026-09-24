@@ -6,20 +6,20 @@ import {
   recipientOptions,
   uid,
   validateCompany,
-} from "./domain";
-import type { Company, Recipient } from "./model";
-import { useWorkspace } from "./store";
+} from "../../../types/domain";
+import type { Company, Recipient } from "../../../types/model";
+import { useWorkspace } from "../../../store/store";
 import {
   Badge,
   Button,
   Empty,
   Field,
   Icon,
-  PageHeader,
   Pagination,
   Search,
   Tabs,
-} from "./ui";
+} from "../../../components/ui/ui";
+import TitleHeader from "../../../components/shared/title-header";
 
 export function CustomerList() {
   const { state } = useWorkspace();
@@ -44,7 +44,7 @@ export function CustomerList() {
   );
   return (
     <>
-      <PageHeader
+      <TitleHeader
         title="Customers"
         count={state.companies.length}
         subtitle="The people and companies you do business with."

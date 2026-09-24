@@ -1,4 +1,4 @@
-import type { CatalogItem, Company, Line, Sale, Workspace } from "./model";
+import type { CatalogItem, Company, Line, Sale, Workspace } from "../types/model";
 import {
   amountDue,
   dateAfter,
@@ -11,8 +11,8 @@ import {
   validateCompany,
   validateLines,
   validateRecipients,
-} from "./domain";
-import { validExtraColumns } from "./schema";
+} from "../types/domain";
+import { validExtraColumns } from "../types/schema";
 
 export const storageKey = "goelta.sales-workspace.v1";
 const record = (v: unknown): v is Record<string, any> =>

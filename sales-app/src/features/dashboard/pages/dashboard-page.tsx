@@ -80,87 +80,92 @@ export default function DashboardPage() {
             </div>
 
             {/* Sales & Operational Trend */}
-            <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 className="text-base font-bold text-slate-900">Revenue & Job Flow Trajectory</h3>
-                        <p className="text-xs text-slate-500">Commercial orders & fulfillment velocity across 2026</p>
-                    </div>
-                    <button
-                        onClick={() => navigate('sales')}
-                        className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 cursor-pointer"
-                    >
-                        <span>Sales Module</span>
-                        <GoArrowRight className="w-3 h-3"/>
-                    </button>
-                </div>
-
-                <SalesTrendChart/>
-            </div>
-
-            {/* Stock Reorder Radar Widget */}
-            <div
-                className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
-                <div>
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-base font-bold text-slate-900">Stock Threshold Watch</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-900">Revenue & Job Flow Trajectory</h3>
+                            <p className="text-xs text-slate-500">Commercial orders & fulfillment velocity across
+                                2026</p>
+                        </div>
                         <button
-                            onClick={() => navigate('inventory')}
-                            className="text-xs text-amber-600 hover:text-amber-700 font-semibold cursor-pointer"
+                            onClick={() => navigate('sales')}
+                            className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 cursor-pointer"
                         >
-                            All Stock &rarr;
+                            <span>Sales Module</span>
+                            <GoArrowRight className="w-3 h-3"/>
                         </button>
                     </div>
-                    <p className="text-xs text-slate-500 mb-4">Live inventory below or near safety reorder minimums</p>
 
-                    <div className="space-y-3.5">
-                        {INITIAL_INVENTORY.slice(0, 4).map((item) => {
-                            const ratio = Math.min(100, Math.round((item.quantityOnHand / (item.minThreshold * 2)) * 100));
-                            return (
-                                <div key={item.id} className="text-xs">
-                                    <div className="flex justify-between items-center mb-1">
+                    <SalesTrendChart/>
+                </div>
+
+                {/* Stock Reorder Radar Widget */}
+                <div
+                    className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-base font-bold text-slate-900">Stock Threshold Watch</h3>
+                            <button
+                                onClick={() => navigate('inventory')}
+                                className="text-xs text-amber-600 hover:text-amber-700 font-semibold cursor-pointer"
+                            >
+                                All Stock &rarr;
+                            </button>
+                        </div>
+                        <p className="text-xs text-slate-500 mb-4">Live inventory below or near safety reorder
+                            minimums</p>
+
+                        <div className="space-y-3.5">
+                            {INITIAL_INVENTORY.slice(0, 4).map((item) => {
+                                const ratio = Math.min(100, Math.round((item.quantityOnHand / (item.minThreshold * 2)) * 100));
+                                return (
+                                    <div key={item.id} className="text-xs">
+                                        <div className="flex justify-between items-center mb-1">
                       <span className="font-semibold text-slate-800 truncate max-w-[170px]" title={item.name}>
                         {item.name}
                       </span>
-                                        <span className={`font-mono font-bold ${
-                                            item.status === 'in_stock'
-                                                ? 'text-emerald-600'
-                                                : item.status === 'low_stock'
-                                                    ? 'text-amber-600'
-                                                    : 'text-rose-600'
-                                        }`}>
+                                            <span className={`font-mono font-bold ${
+                                                item.status === 'in_stock'
+                                                    ? 'text-emerald-600'
+                                                    : item.status === 'low_stock'
+                                                        ? 'text-amber-600'
+                                                        : 'text-rose-600'
+                                            }`}>
                         {item.quantityOnHand} {item.unit}
                       </span>
-                                    </div>
+                                        </div>
 
-                                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full ${
-                                                item.status === 'in_stock'
-                                                    ? 'bg-emerald-500'
-                                                    : item.status === 'low_stock'
-                                                        ? 'bg-amber-500'
-                                                        : 'bg-rose-500'
-                                            }`}
-                                            style={{width: `${Math.max(8, ratio)}%`}}
-                                        ></div>
+                                        <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full ${
+                                                    item.status === 'in_stock'
+                                                        ? 'bg-emerald-500'
+                                                        : item.status === 'low_stock'
+                                                            ? 'bg-amber-500'
+                                                            : 'bg-rose-500'
+                                                }`}
+                                                style={{width: `${Math.max(8, ratio)}%`}}
+                                            ></div>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="mt-5 pt-3 border-t border-slate-100">
+                        <button
+                            onClick={() => handleOpenAdjustStock}
+                            className="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-xl border border-amber-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                            <GoPackage className="w-3.5 h-3.5 text-amber-600"/>
+                            <span>Record Stock Replenishment</span>
+                        </button>
                     </div>
                 </div>
-
-                <div className="mt-5 pt-3 border-t border-slate-100">
-                    <button
-                        onClick={() => handleOpenAdjustStock}
-                        className="w-full py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-xl border border-amber-200 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                        <GoPackage className="w-3.5 h-3.5 text-amber-600"/>
-                        <span>Record Stock Replenishment</span>
-                    </button>
-                </div>
             </div>
+
         </>
     )
 }

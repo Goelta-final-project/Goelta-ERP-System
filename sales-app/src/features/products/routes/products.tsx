@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import { catalogColumns, validExtraColumns } from "./schema";
-import { money } from "./domain";
-import type { CatalogItem } from "./model";
-import { validProduct } from "./storage";
-import { useWorkspace } from "./store";
+import { catalogColumns, validExtraColumns } from "../../../types/schema";
+import { money } from "../../../types/domain";
+import type { CatalogItem } from "../../../types/model";
+import { validProduct } from "../../../services/storage";
+import { useWorkspace } from "../../../store/store";
 import {
   Badge,
   Button,
@@ -11,10 +11,10 @@ import {
   Field,
   Icon,
   Modal,
-  PageHeader,
   Pagination,
   Search,
-} from "./ui";
+} from "../../../components/ui/ui";
+import TitleHeader from "../../../components/shared/title-header";
 
 export function Products() {
   const { state, transact } = useWorkspace();
@@ -38,8 +38,9 @@ export function Products() {
     setBusy(true);
     setError("");
     try {
-      const { readWorkbook } = await import("./excel");
-      const { parseCatalog } = await import("./catalog-import");
+      const { readWorkbook } = await import("../../../services/excel");
+      const { parseCatalog } = await import("../../../features/catalog/api/catalog-import");
+
       const incoming = parseCatalog(await readWorkbook(f), state.extraColumns);
       transact((s) => {
         for (const product of incoming) {
@@ -60,7 +61,7 @@ export function Products() {
   };
   return (
     <>
-      <PageHeader
+      <TitleHeader
         title="Products & services"
         count={state.products.length}
         subtitle="One catalog for your quotations and purchases."
@@ -385,7 +386,7 @@ function SchemaDialog({ onClose }: { onClose: () => void }) {
             icon="download"
             onClick={async () => {
               try {
-                const { downloadSchema } = await import("./excel");
+                const { downloadSchema } = await import("../../../services/excel");
                 if (
                   transact((s) => {
                     s.extraColumns = extras;

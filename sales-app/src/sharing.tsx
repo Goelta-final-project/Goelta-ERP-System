@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import type { Document, DocumentKind } from "./pdf";
-import type { Recipient, Sale } from "./model";
+import type { Document, DocumentKind } from "./services/pdf";
+import type { Recipient, Sale } from "./types/model";
 import {
   profileRecipients,
   transitionSale,
   validEmail,
   validateRecipients,
-} from "./domain";
-import { useWorkspace } from "./store";
-import { Button, Field, Modal } from "./ui";
+} from "./types/domain";
+import { useWorkspace } from "./store/store";
+import { Button, Field, Modal } from "./components/ui/ui";
 
 export function buildMailto(
   to: string,
@@ -44,7 +44,7 @@ export function PdfButton({
           setBusy(true);
           setError("");
           try {
-            const pdf = await import("./pdf");
+            const pdf = await import("./services/pdf");
             pdf.downloadBlob(
               pdf.documentPdf(document, kind).output("blob"),
               pdf.pdfFilename(document.number),
@@ -100,7 +100,7 @@ export function EmailDialog({
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     let cancelled = false;
-    import("./pdf")
+    import("./services/pdf")
       .then((module) => {
         const file = new File(
           [module.documentPdf(sale, "sale").output("blob")],
@@ -145,7 +145,7 @@ export function EmailDialog({
                 e.preventDefault();
                 return;
               }
-              const module = await import("./pdf");
+              const module = await import("./services/pdf");
               module.downloadBlob(pdf, pdf.name);
               setOpened(true);
             }}

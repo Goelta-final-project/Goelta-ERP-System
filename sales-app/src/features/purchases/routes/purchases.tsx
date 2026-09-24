@@ -11,9 +11,9 @@ import {
   savePurchase,
   totals,
   transitionPurchase,
-} from "./domain";
-import type { Purchase } from "./model";
-import { useWorkspace } from "./store";
+} from "../../../types/domain";
+import type { Purchase } from "../../../types/model";
+import { useWorkspace } from "../../../store/store";
 import {
   Activity,
   Badge,
@@ -22,14 +22,14 @@ import {
   Field,
   Icon,
   Modal,
-  PageHeader,
   Pagination,
   Search,
   StatusBar,
   Totals,
-} from "./ui";
-import { Lines } from "./lines";
-import { buildMailto, PdfButton } from "./sharing";
+} from "../../../components/ui/ui";
+import { Lines } from "../../../lines";
+import { buildMailto, PdfButton } from "../../../sharing";
+import TitleHeader from "../../../components/shared/title-header";
 
 export function PurchaseList() {
   const { state } = useWorkspace();
@@ -46,7 +46,7 @@ export function PurchaseList() {
   );
   return (
     <>
-      <PageHeader
+      <TitleHeader
         title="Purchase orders"
         count={state.purchases.length}
         subtitle="Request vendor prices, confirm purchases and receive products."

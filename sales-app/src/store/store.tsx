@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { Workspace } from "./model";
-import { usePersistentState } from "./use-persistent-state";
+import type { Workspace } from "../types/model";
+import { usePersistentState } from "../hooks/use-persistent-state";
 import {
   initialWorkspace,
   seedWorkspace,
   storageKey,
   validWorkspace,
-} from "./storage";
+} from "../services/storage";
 
 type Store = {
   state: Workspace;

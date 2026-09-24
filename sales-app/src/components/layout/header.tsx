@@ -1,5 +1,5 @@
 import {Link, NavLink, useLocation} from "react-router-dom";
-import {Icon} from "../../ui";
+import {Icon} from "../ui/ui";
 import {useEffect} from "react";
 
 export default function Header() {
