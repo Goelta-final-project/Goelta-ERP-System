@@ -1,0 +1,44 @@
+.recipient-row {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #eeedf3;
+  font-size: 12px;
+}
+.recipients-editor {
+  max-width: 740px;
+}
+.recipients-editor > .field {
+  margin-top: 20px;
+}
+.payment-summary {
+  display: flex;
+  gap: 20px;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 1px solid #eeeaf1;
+  padding: 20px 32px;
+  font-size: 12px;
+  color: #928b9c;
+}
+.payment-summary strong {
+  font-size: 21px;
+  color: var(--teal);
+}
+.payment-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border-bottom: 1px solid #eceaf0;
+  padding: 15px 0;
+  font-size: 11px;
+  color: #8b8696;
+}
+.payment-row > svg {
+  color: #63a18c;
+}
+.payment-row strong {
+  margin-left: auto;
+  color: #619f88;
+}

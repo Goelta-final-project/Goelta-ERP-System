@@ -1,0 +1,103 @@
+.document-bottom {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 45px;
+  padding: 24px 32px 30px;
+  border-top: 1px solid #eeeef3;
+}
+.document-bottom > .field textarea {
+  border-style: dashed;
+  font-size: 11px;
+  background: #fdfdfe;
+}
+.document-notes {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #95909e;
+}
+.document-notes h4 {
+  font-size: 10px;
+  color: #7e7386;
+  margin-bottom: 7px;
+}
+.preserve {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.totals {
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  align-self: start;
+}
+.totals > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  color: #92909d;
+}
+.totals strong {
+  font-weight: 500;
+  color: #62606e;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.totals input {
+  max-width: 85px;
+  text-align: right;
+  padding: 4px 7px;
+  font-size: 11px;
+}
+.totals > div > span > label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 7px;
+}
+.totals > div > span > label input {
+  max-width: 55px;
+}
+.totals .grand-total {
+  padding-top: 16px;
+  margin-top: 4px;
+  border-top: 1px solid #e9e4ec;
+  font-size: 15px;
+  color: var(--plum);
+  font-weight: 600;
+}
+.totals .grand-total strong {
+  font-size: 22px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+  color: var(--plum);
+}
+.smart-buttons {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid #efedf3;
+  padding: 10px 22px;
+  gap: 10px;
+  min-height: 52px;
+}
+.smart-buttons:empty {
+  display: none;
+}
+.smart-buttons a {
+  border: 1px solid #e4dfe9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 4px;
+  color: #9c8da4;
+  font-size: 10px;
+}
+.smart-buttons strong {
+  font-weight: 600;
+  color: var(--plum);
+}
+.smart-buttons a:hover {
+  background: #f7f3f8;
+}

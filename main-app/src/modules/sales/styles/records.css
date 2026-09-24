@@ -1,0 +1,253 @@
+.statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
+  padding: 12px 16px;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stages {
+  list-style: none;
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+.stages li {
+  font-size: 10px;
+  color: #a0a3ad;
+  padding: 10px 15px;
+  background: #f8f8fa;
+  position: relative;
+  border: 1px solid #e9eaf0;
+  margin-left: -1px;
+}
+.stages li:first-child {
+  border-radius: 4px 0 0 4px;
+}
+.stages li:last-child {
+  border-radius: 0 4px 4px 0;
+}
+.stages li.current {
+  color: var(--plum);
+  background: #f0e8ef;
+  border-color: #dfcedb;
+  font-weight: 600;
+  z-index: 1;
+}
+.stages li.completed {
+  color: #728779;
+  background: #f1f6f3;
+}
+.record-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 22px;
+  align-items: start;
+}
+.record-sheet {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 5px #20202a03;
+  overflow: hidden;
+}
+.record-heading {
+  padding: 29px 32px 22px;
+}
+.eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  color: #9693a0;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 12px;
+}
+.record-heading h2 {
+  margin-bottom: 12px;
+  font-size: 25px;
+}
+.record-heading > p {
+  font-size: 12px;
+  color: #858998;
+  line-height: 1.8;
+  max-width: 700px;
+}
+.record-number-input {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin-bottom: 14px;
+  font-size: 15px;
+  color: var(--teal);
+  width: 100%;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+.title-input {
+  display: block;
+  border: 0;
+  border-bottom: 1px solid #e6e3e9;
+  border-radius: 0;
+  padding: 4px 0 9px;
+  width: 100%;
+  font-size: 26px;
+  font-weight: 550;
+  letter-spacing: -0.5px;
+  color: #4a4651;
+}
+.title-input::placeholder {
+  color: #b9b5bf;
+}
+.description-input {
+  border: 0;
+  padding: 8px 0;
+  width: 100%;
+  font-size: 12px;
+  color: #727788;
+  margin-top: 8px;
+}
+.record-heading .record-number-input:focus,
+.record-heading .title-input:focus,
+.record-heading .description-input:focus {
+  box-shadow: none;
+  border-color: var(--teal);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 60px;
+  padding: 6px 32px 30px;
+}
+.form-grid.compact {
+  padding: 0;
+  gap: 18px;
+}
+.two-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #6e727f;
+  min-width: 0;
+  font-size: 12px;
+}
+.field > span {
+  font-size: 11px;
+  font-weight: 550;
+  color: #777581;
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  font-size: 12px;
+}
+.field small {
+  color: #9ca0ab;
+  line-height: 1.6;
+  font-size: 10px;
+}
+.required {
+  color: #b19aae;
+}
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.record-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 45px;
+  padding: 0 32px 28px;
+}
+.record-meta > div > span {
+  font-size: 11px;
+  display: block;
+  color: #92909e;
+  margin-bottom: 8px;
+}
+.customer-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--teal);
+  margin-bottom: 8px;
+}
+.record-meta p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #8b8e9b;
+}
+.record-meta dl {
+  margin: 0;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.record-meta dl > div {
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+}
+.record-meta dt {
+  color: #9997a2;
+}
+.record-meta dd {
+  margin: 0;
+  text-align: right;
+  color: #5e5e6e;
+}
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  gap: 4px;
+  padding: 0 26px;
+}
+.tabs button {
+  border: 0;
+  background: transparent;
+  padding: 14px 16px;
+  color: #93929e;
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tabs button.active {
+  border-bottom-color: var(--plum);
+  color: var(--plum);
+  font-weight: 600;
+}
+.tabs button span {
+  font-size: 10px;
+  padding: 1px 5px;
+  background: #f0edf4;
+  color: #9986a0;
+  border-radius: 3px;
+}
+.tab-panel {
+  padding: 26px 32px;
+}
+.static-tab {
+  font-size: 12px;
+  padding: 15px 32px;
+  border-bottom: 1px solid var(--border);
+  color: var(--plum);
+  font-weight: 600;
+  background: #fcfbfd;
+}
