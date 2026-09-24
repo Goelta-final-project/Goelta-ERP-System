@@ -1,0 +1,76 @@
+.activity {
+  padding: 9px 0;
+}
+.activity h3 {
+  display: flex;
+  gap: 9px;
+  font-size: 12px;
+  color: #7e7988;
+  padding-bottom: 17px;
+  border-bottom: 1px solid #e2dfe7;
+}
+.activity h3 svg {
+  width: 15px;
+  height: 15px;
+}
+.activity-compose {
+  border: 1px solid #e1dde7;
+  background: white;
+  border-radius: 5px;
+  margin: 17px 0 22px;
+  padding: 7px;
+  text-align: right;
+}
+.activity-compose textarea {
+  border: 0;
+  font-size: 11px;
+  resize: vertical;
+  width: 100%;
+  box-shadow: none;
+}
+.activity-compose .btn {
+  min-height: 25px;
+  font-size: 10px;
+  padding: 3px 7px;
+}
+.timeline {
+  margin-top: 24px;
+}
+.timeline-event {
+  display: flex;
+  position: relative;
+  gap: 15px;
+  padding: 0 0 24px 0;
+}
+.timeline-event:not(:last-child):before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 0;
+  width: 1px;
+  background: #dedbe4;
+  left: 4px;
+}
+.timeline-dot {
+  border: 2px solid #baa4bd;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #f6f7f9;
+  margin-top: 4px;
+  z-index: 1;
+}
+.timeline-event p {
+  font-size: 11px;
+  color: #868190;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.timeline-event time {
+  font-size: 9px;
+  color: #afabb6;
+  margin-top: 5px;
+  display: block;
+}

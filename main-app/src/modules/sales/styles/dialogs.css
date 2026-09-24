@@ -1,0 +1,238 @@
+.modal {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 60px);
+  border: 1px solid #e1dce6;
+  border-radius: 9px;
+  padding: 0;
+  box-shadow: 0 24px 100px #27203538;
+  color: #514d5b;
+  overflow: auto;
+}
+.modal.wide {
+  width: min(850px, calc(100vw - 32px));
+}
+.modal::backdrop {
+  background: #28223170;
+  backdrop-filter: blur(2px);
+}
+.modal-head {
+  padding: 16px 23px;
+  border-bottom: 1px solid #e8e2ed;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 2;
+}
+.modal-head h2 {
+  font-size: 17px;
+}
+.modal-head .btn {
+  padding: 4px;
+  min-height: 25px;
+  color: #b0a7b8;
+}
+.modal-body {
+  padding: 23px;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.modal-body > .field {
+  margin: 0;
+}
+.modal-body > p {
+  color: #99909f;
+}
+.modal-body > small {
+  font-size: 10px;
+  color: #a99daf;
+}
+.modal-foot {
+  border-top: 1px solid #e8e2ed;
+  padding: 16px 23px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  z-index: 2;
+}
+.radio-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.radio-options > label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid #e6deec;
+  padding: 13px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.radio-options > label:has(input:checked) {
+  border-color: #9fc5c9;
+  background: #f5fafa;
+}
+.radio-options input {
+  margin-top: 4px;
+}
+.radio-options span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.radio-options strong {
+  font-size: 12px;
+  color: #706278;
+}
+.radio-options small {
+  font-size: 10px;
+  color: #a092a9;
+}
+.info-box {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #e6dfea;
+  background: #f7f4f9;
+  padding: 14px;
+  border-radius: 5px;
+  color: #97889e;
+}
+.info-box strong {
+  color: var(--plum);
+}
+.attribute-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.attribute-row > .field {
+  flex: 1;
+}
+.schema-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.schema-chips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e3dbe9;
+  background: #f8f5fa;
+  padding: 5px 9px;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #9b88a4;
+}
+.schema-chips button {
+  background: none;
+  border: 0;
+  color: #b5a4bd;
+  padding: 0;
+}
+.alert {
+  padding: 12px 15px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 12px 0;
+}
+.alert.error {
+  background: #fdf0f0;
+  border-color: #edcdcf;
+  color: #ab515b;
+}
+.alert.warning {
+  background: #fffaee;
+  border-color: #eadfbd;
+  color: #aa8a3d;
+}
+.alert.info {
+  background: #eff7f8;
+  border-color: #d0e5e7;
+  color: #548b92;
+}
+.global-error {
+  margin-bottom: 20px;
+}
+.record-sheet > .alert {
+  margin: 15px 25px;
+}
+.error-text {
+  font-size: 11px;
+  color: #b15665;
+}
+.muted {
+  color: #a599ae;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.toast {
+  position: fixed;
+  bottom: 25px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  background: #fff;
+  color: #6a726c;
+  padding: 16px 19px;
+  box-shadow: 0 5px 35px #313b3125;
+  border: 1px solid #d4e1d9;
+  border-left: 3px solid #77a690;
+  border-radius: 6px;
+  z-index: 50;
+  font-size: 12px;
+  max-width: calc(100vw - 40px);
+}
+.toast span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.toast span svg {
+  color: #70a78a;
+}
+.toast button {
+  border: 0;
+  background: none;
+  color: #9ba49f;
+  padding: 0;
+}
+.app-footer {
+  max-width: 1680px;
+  margin: auto;
+  padding: 16px 34px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: #b4b5bf;
+  border-top: 1px solid #e9e8ee;
+}
+.app-footer b {
+  font-weight: 400;
+  color: #d0ccd6;
+  margin: 0 6px;
+}
+.skip-link {
+  position: fixed;
+  top: -50px;
+  left: 10px;
+  background: #fff;
+  z-index: 100;
+  padding: 10px;
+  color: var(--teal);
+}
+.skip-link:focus {
+  top: 10px;
+}

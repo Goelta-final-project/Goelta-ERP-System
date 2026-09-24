@@ -1,0 +1,149 @@
+.line-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 22px;
+  border-bottom: 1px solid #eeeef2;
+  background: #fefefe;
+}
+.line-toolbar > span {
+  font-size: 11px;
+  color: #a1a0ab;
+}
+.line-toolbar > div {
+  display: flex;
+  gap: 3px;
+}
+.line-toolbar .btn {
+  font-size: 10px;
+  min-height: 30px;
+  padding: 6px 9px;
+}
+.line-toolbar .btn svg {
+  width: 14px;
+  height: 14px;
+}
+.line-table {
+  min-width: 660px;
+  font-size: 11px;
+}
+.line-table th {
+  font-size: 10px;
+  height: 38px;
+  background: #fcfcfd;
+}
+.line-table th,
+.line-table td {
+  padding: 13px 12px;
+}
+.line-table .line-description {
+  width: 48%;
+}
+.line-table input,
+.line-table textarea,
+.line-table select {
+  font-size: 11px;
+  padding: 5px 7px;
+  width: 100%;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.line-table input:focus,
+.line-table textarea:focus,
+.line-table select:focus {
+  border-color: #80b8bd;
+  background: #fff;
+}
+.line-table .numeric input {
+  text-align: right;
+  min-width: 68px;
+  max-width: 100px;
+}
+.line-table td:nth-last-child(4) > input {
+  min-width: 50px;
+}
+.line-table textarea {
+  display: block;
+  min-width: 200px;
+  line-height: 1.7;
+  min-height: 31px;
+  color: #555966;
+}
+.line-table select {
+  font-size: 10px;
+  color: var(--teal);
+  padding: 4px;
+  max-width: 310px;
+}
+.line-table .line-amount {
+  font-weight: 600;
+  min-width: 100px;
+}
+.line-order {
+  width: 30px;
+  padding: 4px !important;
+}
+.line-order button {
+  display: block;
+  background: none;
+  border: 0;
+  color: #a7a7b2;
+  width: 22px;
+  height: 21px;
+  padding: 0;
+}
+.line-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 3px 0;
+  color: #a0a0aa;
+  font-size: 9px;
+}
+.line-meta > input {
+  max-width: 65px;
+  border-bottom: 1px dotted #e1e1e8;
+  border-radius: 0;
+  font-size: 9px;
+  padding: 3px;
+}
+.line-meta .text-link {
+  font-size: 9px;
+  color: #a29aaa;
+}
+.line-section {
+  background: #f4f1f6;
+  font-weight: 600;
+  color: #6f6276;
+}
+.line-note {
+  font-style: italic;
+  color: #9691a0;
+}
+.line-empty {
+  padding: 25px 32px;
+  color: #b0abb7;
+  font-size: 12px;
+}
+.icon-button {
+  border: 0;
+  background: none;
+  padding: 4px;
+  color: #aaa5b0;
+}
+.remove-line:hover {
+  color: #b96069;
+}
+.add-lines {
+  display: flex;
+  gap: 9px;
+  padding: 12px 20px;
+  border-top: 1px solid #f0edf4;
+}
+.add-lines .btn {
+  font-size: 11px;
+  color: var(--teal);
+}

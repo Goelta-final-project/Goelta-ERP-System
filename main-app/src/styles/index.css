@@ -1,0 +1,13 @@
+@import "./base.css";
+@import "../modules/sales/styles/shell.css";
+@import "../modules/sales/styles/controls.css";
+@import "../modules/sales/styles/lists.css";
+@import "../modules/sales/styles/records.css";
+@import "../modules/sales/styles/line-editor.css";
+@import "../modules/sales/styles/document-summary.css";
+@import "../modules/sales/styles/activity.css";
+@import "../modules/sales/styles/recipients-payments.css";
+@import "../modules/sales/styles/customers-products.css";
+@import "../modules/sales/styles/dialogs.css";
+@import "../modules/sales/styles/responsive.css";
+@import "../modules/dashboard/dashboard.css";
