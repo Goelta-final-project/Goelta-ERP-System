@@ -49,9 +49,10 @@ export function WorkspaceHeader() {
     <header className="topbar dashboard-topbar">
       <Link className="brand" to="/" aria-label="GOELTA dashboard">
         <img className="brand-logo" src="/goelta-logo.png" alt="GOELTA" />
-        <span className="brand-divider" />
       </Link>
-      <span className="app-name">Workspace</span>
+      <span className="module-context" aria-label="Current workspace: Overview">
+        Overview
+      </span>
       <div
         className="workspace-search"
         role="search"

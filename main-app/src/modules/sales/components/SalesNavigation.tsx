@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Icon } from "../../../shared/ui/Icon";
 import { ThemeToggle } from "../../../shared/ui/ThemeToggle";
@@ -5,23 +6,25 @@ import { useWorkspace } from "../data/WorkspaceProvider";
 
 export function SalesNavigation() {
   const { state } = useWorkspace();
+  const [query, setQuery] = useState("");
   const location = useLocation();
   const purchase = location.pathname.startsWith("/sales/purchases");
   const invoices = location.pathname.startsWith("/sales/invoices");
   const customers = location.pathname.startsWith("/sales/customers");
   const products = location.pathname.startsWith("/sales/products");
+  const term = query.trim().toLowerCase();
+  const searchResults = term
+    ? [
+        ...state.sales.map((sale) => ({ label: sale.number, detail: `${sale.customer} · ${sale.title}`, to: `/sales/quotations/${sale.id}` })),
+        ...state.invoices.map((invoice) => ({ label: invoice.number, detail: invoice.customer, to: `/sales/invoices/${invoice.id}` })),
+        ...state.purchases.map((purchase) => ({ label: purchase.number, detail: purchase.vendor, to: `/sales/purchases/${purchase.id}` })),
+        ...state.companies.map((company) => ({ label: company.name, detail: "Customer", to: `/sales/customers/${company.id}` })),
+        ...state.products.map((product) => ({ label: product.name, detail: product.itemNo, to: "/sales/products" })),
+      ]
+        .filter((item) => `${item.label} ${item.detail}`.toLowerCase().includes(term))
+        .slice(0, 6)
+    : [];
 
-  // Keep the module title and secondary links derived from the same pathname;
-  // this prevents the two navigation levels from showing different modules.
-  const sectionName = purchase
-    ? "Purchase"
-    : invoices
-      ? "Invoicing"
-      : customers
-        ? "Customers"
-        : products
-          ? "Products"
-          : "Sales";
   const sectionLinks: [string, string][] = purchase
     ? [
         ["Requests & purchase orders", "/sales/purchases"],
@@ -46,9 +49,32 @@ export function SalesNavigation() {
       <header className="topbar">
         <Link className="brand" aria-label="GOELTA dashboard" to="/">
           <img className="brand-logo" src="/goelta-logo.png" alt="GOELTA" />
-          <span className="brand-divider" />
         </Link>
-        <span className="app-name">{sectionName}</span>
+        <span className="module-context" aria-label="Current workspace: Sales">
+          Sales
+        </span>
+        <div className="sales-search" role="search" onKeyDown={(event) => {
+          if (event.key === "Escape") setQuery("");
+        }}>
+          <Icon name="search" size={15} />
+          <input
+            aria-label="Search workspace"
+            placeholder="Search…"
+            autoComplete="off"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {term && (
+            <div className="sales-search-results">
+              {searchResults.length ? searchResults.map((result) => (
+                <Link key={`${result.to}-${result.label}`} to={result.to} onClick={() => setQuery("")}>
+                  <strong>{result.label}</strong>
+                  <span>{result.detail}</span>
+                </Link>
+              )) : <p>No matching records</p>}
+            </div>
+          )}
+        </div>
         <nav aria-label="Main navigation">
           <NavLink
             to="/sales/quotations"

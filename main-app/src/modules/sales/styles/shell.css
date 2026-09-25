@@ -7,9 +7,11 @@
   padding: 0 28px;
   gap: 21px;
 }
-.brand {
+.topbar .brand {
   display: flex;
   align-items: center;
+  min-width: 120px;
+  margin-right: -7px;
   font-size: 19px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -31,6 +33,79 @@
   font-weight: 550;
   margin-right: 17px;
 }
+.module-context {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-right: 10px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.module-context::before {
+  content: "";
+  flex: 0 0 2px;
+  width: 2px;
+  height: 19px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, var(--brand-orange), var(--brand-blue));
+}
+.sales-search {
+  margin-left: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 190px;
+  color: #d8eaf3;
+}
+.sales-search > svg {
+  position: absolute;
+  left: 10px;
+  pointer-events: none;
+}
+.sales-search > input {
+  width: 100%;
+  height: 34px;
+  padding: 7px 10px 7px 32px;
+  border: 1px solid #ffffff2b;
+  border-radius: 18px;
+  background: #ffffff12;
+  color: #fff;
+  font-size: 12px;
+}
+.sales-search > input::placeholder { color: #d8eaf3; }
+.sales-search > input:focus {
+  border-color: #8bdcff;
+  box-shadow: 0 0 0 2px #ffffff18;
+}
+.sales-search-results {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 310px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+.sales-search-results a {
+  display: grid !important;
+  gap: 2px;
+  padding: 8px 10px !important;
+  border-radius: 4px;
+  color: var(--text) !important;
+}
+.sales-search-results a:hover { background: var(--surface-soft) !important; }
+.sales-search-results strong { font-size: 12px; }
+.sales-search-results span,
+.sales-search-results p { color: var(--text-soft); font-size: 11px; }
+.sales-search-results p { padding: 8px 10px; }
 .topbar nav {
   display: flex;
   align-self: stretch;

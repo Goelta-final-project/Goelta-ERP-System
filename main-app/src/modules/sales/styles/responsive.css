@@ -85,9 +85,15 @@
   .app-name {
     font-size: 15px;
   }
+  .module-context small {
+    display: none;
+  }
   .topbar-right {
     margin-left: auto;
     order: 0;
+  }
+  .sales-search {
+    width: 150px;
   }
   .topbar nav {
     order: 1;

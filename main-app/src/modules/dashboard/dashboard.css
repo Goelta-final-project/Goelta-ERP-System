@@ -1,9 +1,6 @@
 .dashboard .dashboard-topbar {
   gap: 20px;
 }
-.dashboard .dashboard-topbar .app-name {
-  margin-right: 12px;
-}
 .dashboard .workspace-search {
   position: relative;
   display: flex;
@@ -24,7 +21,7 @@
   color: white;
   padding: 10px 35px;
   font-size: 12px;
-  border-radius: 6px;
+  border-radius: 20px;
 }
 .dashboard .workspace-search > input::placeholder {
   color: #f3eaf0c9;
@@ -705,9 +702,6 @@
   gap: 20px;
 }
 @media (max-width: 1150px) {
-  .dashboard .dashboard-topbar .app-name {
-    display: none;
-  }
   .dashboard .workspace-profile > div {
     display: none;
   }
