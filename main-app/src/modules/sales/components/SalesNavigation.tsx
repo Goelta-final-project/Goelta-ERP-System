@@ -10,6 +10,9 @@ export function SalesNavigation() {
   const invoices = location.pathname.startsWith("/sales/invoices");
   const customers = location.pathname.startsWith("/sales/customers");
   const products = location.pathname.startsWith("/sales/products");
+
+  // Keep the module title and secondary links derived from the same pathname;
+  // this prevents the two navigation levels from showing different modules.
   const sectionName = purchase
     ? "Purchase"
     : invoices

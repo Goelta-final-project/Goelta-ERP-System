@@ -34,6 +34,9 @@ export function SaleForm({ initial }: { initial?: Sale }) {
     setDraft((s) => ({ ...s, ...patch }));
   const company = state.companies.find((c) => c.id === draft.customerId);
   const warnings = stockWarnings(draft.lines, state.products);
+
+  // Forms edit local draft state. Saving is the single point that validates,
+  // persists, and then navigates to the canonical record URL.
   const save = (email = false) => {
     const clean = {
       ...draft,

@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
+/** Last-resort UI boundary; it never clears or rewrites persisted records. */
 export class ErrorBoundary extends Component<
   { children: ReactNode },
   { failed: boolean }

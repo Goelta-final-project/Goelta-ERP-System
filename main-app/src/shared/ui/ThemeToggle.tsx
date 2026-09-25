@@ -3,6 +3,7 @@ import { Icon } from "./Icon";
 
 type Theme = "light" | "dark";
 
+// Prefer the saved choice, then the operating-system preference on first use.
 function initialTheme(): Theme {
   if (typeof window === "undefined") return "light";
   const saved = window.localStorage?.getItem("goelta-theme");

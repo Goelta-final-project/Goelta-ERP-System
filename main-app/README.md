@@ -16,7 +16,7 @@ Open the localhost URL printed by Vite. Build with `npm run build`; inspect the 
 
 ## Features
 
-- **Dashboard (`/`):** seven application tiles; Sales opens quotations, Accounting opens customer invoices, Inventory opens the product catalog, and Stakeholders opens customers. Projects, HR, and Settings are visibly unavailable until those modules are implemented. No inactive tile claims to be a working module.
+- **Dashboard (`/`):** six application tiles. Sales is the only enabled workspace; Accounting, Projects, Inventory, HR, and Stakeholders remain visible but unavailable until their modules are implemented. Settings lives in the header account area rather than the launcher.
 - **Workspace search:** find available applications, customers, quotations/orders, invoices, and purchases; follow results directly to records.
 - **Financial activity:** select a year to compare posted invoice totals with confirmed/received purchase totals. Values include tax, use the sales workspace's USD currency, and exclude drafts/cancellations. These are document totals, not recognized revenue or accounting cost of revenue. An accessible monthly table accompanies the chart; there are no invented chart values.
 - **Personal tasks:** add, complete, and delete tasks. Tasks use a separate validated browser-storage key, with visible errors for corrupt data, failed writes, and conflicts with another tab.
@@ -47,33 +47,130 @@ npm run build
 
 Tests cover business transitions, rounding, deposits/tax, partial payments, duplicate protection, receipts, recipient profiles, Excel, PDF contents/pagination, migration, storage conflicts/corruption, and component-level flows through the React screens. Dashboard tests cover sales navigation and return, legacy links, record search, task persistence/failure/conflict handling, and financial aggregation.
 
+## UI code tree
+
+Use this map when changing the interface by hand. Route-level files compose
+screens; reusable controls live under `shared/ui`; colors and dark-mode
+overrides live in `styles/theme.css`.
+
 ```text
 src/
-  app/                         Root routes, legacy redirects, error boundary
-  modules/
-    dashboard/
-      components/              Header/search, application launcher, chart, tasks
-      data/                    Module definitions, analytics, task validation
-      Dashboard.tsx            Dashboard composition
-      dashboard.css            Responsive dashboard styles
-    sales/
-      features/
-        quotations/            List, route, form, detail, invoice dialog
-        customers/             List, route, form, recipient editor
-        invoices/              List, route, detail, payment dialog
-        purchases/             List, route, form, detail
-        products/              Catalog and product/schema dialogs
-      components/              Navigation, line editor, totals, activity, sharing
-      domain/                  Types and pure rules grouped by business area
-      data/                    Provider, validation, seeds, migration, storage key
-      services/                Excel, import schema/parser, PDF generation
-      styles/                  Shell, controls, lists, records, dialogs, responsive rules
-      SalesWorkspace.tsx       Sales layout and nested routes
-  shared/
-    ui/                        One reusable UI component per file
-    hooks/                     Validated, conflict-aware persistence
-  styles/                      Global typography/tokens and ordered CSS imports
+├── main.tsx                         # Browser entry; mounts React and global CSS
+├── assets/
+│   └── goelta-logo.png             # Source copy of the company logo
+├── app/
+│   ├── App.tsx                     # Top-level routes and legacy URL redirects
+│   ├── ErrorBoundary.tsx           # Safe fallback for rendering failures
+│   └── RouteEffects.tsx            # Scroll, focus, and document-title changes
+├── modules/
+│   ├── dashboard/
+│   │   ├── Dashboard.tsx           # Main-page composition and sales metrics
+│   │   ├── dashboard.css           # Dashboard layout and responsive rules
+│   │   ├── components/
+│   │   │   ├── WorkspaceHeader.tsx # Logo, search, theme/settings, account area
+│   │   │   ├── ApplicationLauncher.tsx # Enabled/disabled module tiles
+│   │   │   ├── FinancialActivity.tsx   # Monthly invoice/purchase chart
+│   │   │   └── TaskManager.tsx         # Browser-local personal tasks
+│   │   └── data/
+│   │       ├── applications.ts     # Tile labels, icons, tones, enabled hrefs
+│   │       ├── analytics.ts        # Dashboard financial aggregation
+│   │       └── tasks.ts            # Task validation and storage model
+│   └── sales/
+│       ├── SalesWorkspace.tsx      # Sales shell, nested routes, toast, footer
+│       ├── components/
+│       │   ├── SalesNavigation.tsx # Primary/secondary sales navigation
+│       │   ├── LineEditor.tsx      # Editable/read-only document line table
+│       │   ├── Totals.tsx          # Discount, tax, and grand total UI
+│       │   ├── Activity.tsx        # Notes and record history timeline
+│       │   └── sharing/
+│       │       ├── EmailDialog.tsx # Recipient selection and email hand-off
+│       │       ├── PdfButton.tsx   # Lazy PDF generation/download action
+│       │       └── buildMailto.ts  # Native mail-client URL construction
+│       ├── features/
+│       │   ├── quotations/
+│       │   │   ├── SalesList.tsx   # Quotations/orders/to-invoice lists
+│       │   │   ├── SaleRoute.tsx   # New/detail/edit route selection
+│       │   │   ├── SaleForm.tsx    # Compact quotation creation/edit form
+│       │   │   ├── SaleDetail.tsx  # Quotation and sales-order record view
+│       │   │   └── CreateInvoice.tsx # Invoice/down-payment dialog
+│       │   ├── customers/          # Customer list/form/route/recipients
+│       │   ├── invoices/           # Invoice list/detail/route/payment dialog
+│       │   ├── purchases/          # RFQ/purchase list/form/detail/route
+│       │   └── products/           # Catalog and product/schema dialogs
+│       ├── data/
+│       │   ├── WorkspaceProvider.tsx # Shared state and transaction boundary
+│       │   ├── storage.ts          # Stable public exports for persistence
+│       │   ├── migration.ts        # Legacy-browser-data import
+│       │   ├── validation.ts       # Runtime workspace validation
+│       │   ├── seeds.ts            # Initial/demo workspace data
+│       │   └── keys.ts             # Browser-storage keys
+│       ├── domain/
+│       │   ├── types.ts            # Business data types
+│       │   ├── workflow.ts         # Stable public domain export surface
+│       │   ├── common.ts           # Money, lines, IDs, dates, validation
+│       │   ├── quotations.ts       # Sale creation/save/transitions
+│       │   ├── invoicing.ts        # Invoice/payment rules
+│       │   ├── purchasing.ts       # RFQ/order/receipt rules
+│       │   ├── customers.ts        # Customer and recipient rules
+│       │   └── catalog.ts          # Product/catalog rules
+│       ├── services/
+│       │   ├── excel.ts            # Lazy Excel facade
+│       │   ├── catalog-import.ts   # Workbook-to-catalog parser
+│       │   ├── catalog-schema.ts   # Configurable import columns
+│       │   └── pdf.ts              # Quotation/invoice/purchase PDF output
+│       └── styles/
+│           ├── shell.css           # Top bar, secondary nav, page container
+│           ├── controls.css        # Headers, buttons, links
+│           ├── lists.css           # Metrics, filters, tables, empty states
+│           ├── records.css         # Record sheets, fields, tabs
+│           ├── line-editor.css     # Order-line table/editor
+│           ├── document-summary.css # Notes and totals
+│           ├── activity.css        # Timeline and internal notes
+│           ├── recipients-payments.css # Recipient/payment rows
+│           ├── customers-products.css  # Customer/product-specific views
+│           ├── dialogs.css         # Modals, alerts, toast, footer
+│           └── responsive.css      # Cross-feature breakpoints
+├── shared/
+│   ├── hooks/
+│   │   └── usePersistentState.ts   # Validated writes and tab-conflict checks
+│   └── ui/
+│       ├── Button.tsx / Field.tsx / Search.tsx
+│       ├── PageHeader.tsx / Pagination.tsx / Tabs.tsx
+│       ├── Modal.tsx / Empty.tsx / Badge.tsx
+│       ├── Icon.tsx                # Local SVG icon paths
+│       ├── ThemeToggle.tsx         # Persistent light/dark selection
+│       ├── StatusBar.tsx           # Compact workflow-action row
+│       └── index.ts                # Shared UI exports
+└── styles/
+    ├── index.css                   # Ordered stylesheet imports
+    ├── base.css                    # Reset, typography, native controls
+    └── theme.css                   # GOELTA tokens, dark mode, final overrides
+
+public/
+└── goelta-logo.png                 # Browser-served header logo
 ```
+
+### Common hand-editing tasks
+
+| Change | Primary file |
+|---|---|
+| Enable or disable a dashboard module | `src/modules/dashboard/data/applications.ts` |
+| Change dashboard layout or widgets | `src/modules/dashboard/Dashboard.tsx` |
+| Change header account controls | `WorkspaceHeader.tsx` and `SalesNavigation.tsx` |
+| Change routes | `src/app/App.tsx` or `sales/SalesWorkspace.tsx` |
+| Change quotation creation UI | `features/quotations/SaleForm.tsx` |
+| Change list columns/filters | The feature `*List.tsx` plus `styles/lists.css` |
+| Change fields on a record | The feature form/detail plus `styles/records.css` |
+| Change colors or dark mode | `src/styles/theme.css` |
+| Add an icon | `src/shared/ui/Icon.tsx` |
+| Change business behavior | `src/modules/sales/domain/*` |
+| Change saving/migration | `src/modules/sales/data/*` |
+
+The CSS import order is significant: `base.css` loads first, feature styles load
+next, and `theme.css` loads last so theme and dark-mode rules can override legacy
+feature selectors. Prefer existing CSS variables (`--bg`, `--surface`,
+`--surface-soft`, `--text`, `--text-soft`, `--border`, `--teal`) instead of new
+hard-coded colors.
 
 Keep business mutations in `modules/sales/domain` and commit them through `WorkspaceProvider.transact`. UI components should not write sales storage directly. `domain/workflow.ts` and `data/storage.ts` are public export surfaces; the implementation lives in the focused files beside them. Excel and PDF libraries continue to load on demand.
 

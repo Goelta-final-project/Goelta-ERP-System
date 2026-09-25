@@ -22,6 +22,9 @@ export function Lines({
   const [attributes, setAttributes] = useState<string | null>(null);
   const [heading, setHeading] = useState("");
   const [error, setError] = useState("");
+
+  // `onChange` is also the edit-mode flag. Without it the same component is a
+  // read-only document table, keeping quotation/PDF-facing values consistent.
   const update = (id: string, patch: Partial<Line>) =>
     onChange?.(lines.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   const move = (idx: number, delta: number) => {

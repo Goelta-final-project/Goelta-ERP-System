@@ -7,6 +7,8 @@ export type Application = {
   href?: string;
 };
 
+// A tile is enabled only when it has an href. Keep planned modules in this
+// list without an href so the launcher can show them as intentionally locked.
 export const applications: readonly Application[] = [
   {
     id: "sales",

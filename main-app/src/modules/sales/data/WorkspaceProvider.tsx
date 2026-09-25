@@ -15,6 +15,9 @@ type Store = {
   transact: (change: (draft: Workspace) => void, notice?: string) => boolean;
 };
 const Context = createContext<Store | null>(null);
+
+// Central write boundary for business data. Domain functions mutate a cloned
+// draft inside transact; persistence succeeds before consumers see new state.
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [initial] = useState(() => {
     try {

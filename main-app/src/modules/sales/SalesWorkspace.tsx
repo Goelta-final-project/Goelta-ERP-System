@@ -9,6 +9,8 @@ import { Products } from "./features/products/index";
 import { PurchaseList, PurchaseRoute } from "./features/purchases/index";
 import { SaleRoute, SalesList } from "./features/quotations/index";
 
+// Shared shell for every sales route. Feature folders own their nested screens;
+// this component only coordinates navigation, notices, errors, and routing.
 export default function SalesWorkspace() {
   const { error, notice, clearNotice } = useWorkspace();
   useEffect(() => {

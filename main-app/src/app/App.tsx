@@ -22,6 +22,8 @@ const legacyRoutes = [
   "purchases",
 ];
 
+// The workspace has one React root: the dashboard owns `/`, while every
+// operational screen is nested below `/sales` and shares one data provider.
 export default function App() {
   return (
     <ErrorBoundary>

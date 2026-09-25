@@ -24,6 +24,8 @@ export function Dashboard() {
     .reduce((sum, invoice) => sum + amountDue(invoice), 0);
   const demo = state.sales.some((sale) => sale.isDemo);
 
+  // Dashboard figures are derived from the same workspace used by Sales so
+  // launcher metrics never maintain a second copy of business data.
   return (
     <div className="dashboard">
       <a href="#main" className="skip-link">
