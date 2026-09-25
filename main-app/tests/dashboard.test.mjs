@@ -87,7 +87,8 @@ test("dashboard opens sales and returns home without changing saved records", ()
   const saved = JSON.stringify(state);
   const ui = mount("/", new Map([[storageKey, saved]]));
   assert.match(ui.text, /Your applications/);
-  assert.match(ui.text, /Includes demo records/);
+  assert.match(ui.text, /Sales summaries include sample quotations/);
+  assert.doesNotMatch(ui.text, /Workspace overview/);
   assert.equal(
     ui.renderer.root.findAllByProps({ "aria-disabled": "true" }).length,
     5,

@@ -58,7 +58,14 @@ input:disabled { background: var(--surface-soft); color: var(--text-soft); }
   border-bottom: 2px solid rgba(6, 169, 232, .38);
 }
 .brand { min-width: 142px; gap: 12px; }
-.brand-logo { width: 120px; height: 58px; object-fit: contain; display: block; }
+.brand-logo {
+  width: 120px;
+  height: 58px;
+  padding-block: 6px;
+  box-sizing: border-box;
+  object-fit: contain;
+  display: block;
+}
 .topbar nav a { font-size: .9rem; color: #eaf5fa; }
 .app-name { font-size: 1.1rem; }
 .workspace-name { font-size: .8125rem; color: #d8eaf3; }
@@ -104,14 +111,14 @@ input:disabled { background: var(--surface-soft); color: var(--text-soft); }
 .topbar .workspace-profile strong { font-size: .8125rem; color: #fff; }
 .topbar .workspace-profile > div > span { font-size: .75rem; color: #d8eaf3; }
 
-.subnav, .dashboard .dashboard-context {
+.subnav {
   background: var(--surface);
   border-color: var(--border);
 }
 .subnav { justify-content: flex-start; }
 .subnav > nav { flex: 1; }
 .subnav .local-indicator { margin-left: auto; }
-.subnav nav a, .local-indicator, .dashboard .dashboard-context > span:first-child { color: var(--text-soft); font-size: .8125rem; }
+.subnav nav a, .local-indicator { color: var(--text-soft); font-size: .8125rem; }
 .subnav nav a.active { color: var(--teal); }
 .subnav nav a.active::after { background: var(--brand-orange); }
 .subnav .back-link {

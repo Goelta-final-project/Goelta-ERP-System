@@ -32,15 +32,6 @@ export function Dashboard() {
         Skip to content
       </a>
       <WorkspaceHeader />
-      <div className="dashboard-context">
-        <span>
-          <Icon name="grid" size={14} /> Workspace overview
-        </span>
-        <span className="local-indicator">
-          <i />
-          {demo ? "Includes demo records" : "Local workspace"}
-        </span>
-      </div>
       <main id="main" className="dashboard-main" tabIndex={-1}>
         {error && (
           <div role="alert" className="alert error global-error">
