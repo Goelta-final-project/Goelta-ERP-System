@@ -65,7 +65,7 @@ export function SaleForm({ initial }: { initial?: Sale }) {
     }
   };
   return (
-    <>
+    <div className={`quotation-form-page${initial ? "" : " compact"}`}>
       <PageHeader
         title={initial ? draft.number : "New quotation"}
         crumbs={[{ label: "Quotations", to: "/sales/quotations" }]}
@@ -95,10 +95,12 @@ export function SaleForm({ initial }: { initial?: Sale }) {
           </>
         }
       />
-      <StatusBar
-        stages={["Quotation", "Quotation Sent", "Sales Order"]}
-        current="Quotation"
-      />
+      {initial && (
+        <StatusBar
+          stages={["Quotation", "Quotation Sent", "Sales Order"]}
+          current="Quotation"
+        />
+      )}
       {error && (
         <div role="alert" className="alert error">
           {error}
@@ -283,6 +285,6 @@ export function SaleForm({ initial }: { initial?: Sale }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
