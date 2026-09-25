@@ -90,7 +90,7 @@ test("dashboard opens sales and returns home without changing saved records", ()
   assert.match(ui.text, /Includes demo records/);
   assert.equal(
     ui.renderer.root.findAllByProps({ "aria-disabled": "true" }).length,
-    6,
+    5,
   );
   ui.clickLink("/sales/quotations");
   assert.match(ui.text, /Quotations/);

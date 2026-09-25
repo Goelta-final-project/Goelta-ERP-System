@@ -99,14 +99,9 @@ export function WorkspaceHeader() {
       </div>
       <div className="topbar-right">
         <ThemeToggle />
-        <Link
-          className="dashboard-quick-create"
-          to="/sales/quotations/new"
-          aria-label="Create quotation"
-          title="Create quotation"
-        >
-          <Icon name="plus" size={20} />
-        </Link>
+        <button type="button" className="account-settings" title="Settings" aria-label="Settings">
+          <Icon name="gear" size={21} strokeWidth={2} />
+        </button>
         <div className="workspace-profile">
           <span className="user-avatar" aria-hidden="true">
             G

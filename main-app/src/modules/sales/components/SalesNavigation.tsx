@@ -1,4 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { Icon } from "../../../shared/ui/Icon";
 import { ThemeToggle } from "../../../shared/ui/ThemeToggle";
 import { useWorkspace } from "../data/WorkspaceProvider";
 
@@ -77,10 +78,16 @@ export function SalesNavigation() {
         </nav>
         <div className="topbar-right">
           <ThemeToggle />
-          <span className="workspace-name">GOELTA Workspace</span>
-          <span className="user-avatar" title="Local workspace">
-            G
-          </span>
+          <button type="button" className="account-settings" title="Settings" aria-label="Settings">
+            <Icon name="gear" size={21} strokeWidth={2} />
+          </button>
+          <div className="workspace-profile">
+            <span className="user-avatar" aria-hidden="true">G</span>
+            <div>
+              <strong>GOELTA Global</strong>
+              <span>Local workspace</span>
+            </div>
+          </div>
         </div>
       </header>
       <div className="subnav">

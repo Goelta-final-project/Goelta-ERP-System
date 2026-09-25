@@ -51,11 +51,4 @@ export const applications: readonly Application[] = [
     icon: "handshake",
     tone: "plum",
   },
-  {
-    id: "settings",
-    name: "Settings",
-    description: "Configuration & access",
-    icon: "settings",
-    tone: "slate",
-  },
 ];
