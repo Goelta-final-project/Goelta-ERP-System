@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../../../shared/ui/Icon";
+import { ThemeToggle } from "../../../shared/ui/ThemeToggle";
 import { useWorkspace } from "../../sales/data/WorkspaceProvider";
 import { applications } from "../data/applications";
 
@@ -47,10 +48,8 @@ export function WorkspaceHeader() {
   return (
     <header className="topbar dashboard-topbar">
       <Link className="brand" to="/" aria-label="GOELTA dashboard">
-        <span className="app-icon">
-          <Icon name="grid" size={20} />
-        </span>
-        GOELTA <span className="brand-divider" />
+        <img className="brand-logo" src="/goelta-logo.png" alt="GOELTA" />
+        <span className="brand-divider" />
       </Link>
       <span className="app-name">Workspace</span>
       <div
@@ -99,6 +98,7 @@ export function WorkspaceHeader() {
         )}
       </div>
       <div className="topbar-right">
+        <ThemeToggle />
         <Link
           className="dashboard-quick-create"
           to="/sales/quotations/new"

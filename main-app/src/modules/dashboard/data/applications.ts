@@ -22,7 +22,6 @@ export const applications: readonly Application[] = [
     description: "Customer invoices",
     icon: "file",
     tone: "teal",
-    href: "/sales/invoices",
   },
   {
     id: "projects",
@@ -37,7 +36,6 @@ export const applications: readonly Application[] = [
     description: "Products & stock",
     icon: "box",
     tone: "orange",
-    href: "/sales/products",
   },
   {
     id: "hr",
@@ -52,7 +50,6 @@ export const applications: readonly Application[] = [
     description: "Customers & contacts",
     icon: "handshake",
     tone: "plum",
-    href: "/sales/customers",
   },
   {
     id: "settings",

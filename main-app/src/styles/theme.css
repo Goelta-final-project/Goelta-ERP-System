@@ -1,0 +1,357 @@
+/* GOELTA brand layer: calm Odoo-inspired surfaces, stronger type and dark mode. */
+:root {
+  --plum: #245b78;
+  --teal: #0784b5;
+  --brand-blue: #06a9e8;
+  --brand-blue-deep: #07548a;
+  --brand-orange: #f59a23;
+  --bg: #f3f7fa;
+  --surface: #ffffff;
+  --surface-soft: #edf4f8;
+  --surface-raised: #ffffff;
+  --text: #263746;
+  --text-soft: #5f7180;
+  --border: #d6e1e8;
+  --topbar: #183f57;
+  --shadow: 0 8px 26px rgba(25, 64, 87, 0.08);
+  font-size: 16px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+:root[data-theme="dark"] {
+  --plum: #72c4e7;
+  --teal: #35b6e7;
+  --brand-blue: #30b9ec;
+  --brand-blue-deep: #78cceb;
+  --brand-orange: #ffad42;
+  --bg: #111a21;
+  --surface: #19252e;
+  --surface-soft: #202f39;
+  --surface-raised: #22313b;
+  --text: #e8f1f5;
+  --text-soft: #b0c1cb;
+  --border: #344752;
+  --topbar: #102a3b;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+}
+
+body { background: var(--bg); color: var(--text); line-height: 1.55; }
+h1 { font-size: 1.85rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.05rem; }
+h4, small { font-size: .8125rem; }
+
+input, select, textarea {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  font-size: .9375rem;
+}
+input::placeholder, textarea::placeholder { color: var(--text-soft); opacity: .85; }
+input:disabled { background: var(--surface-soft); color: var(--text-soft); }
+
+.topbar {
+  min-height: 72px;
+  height: 72px;
+  background: linear-gradient(100deg, var(--topbar), #14516f);
+  border-bottom: 2px solid rgba(6, 169, 232, .38);
+}
+.brand { min-width: 142px; gap: 12px; }
+.brand-logo { width: 120px; height: 58px; object-fit: contain; display: block; }
+.topbar nav a { font-size: .9rem; color: #eaf5fa; }
+.app-name { font-size: 1.1rem; }
+.workspace-name { font-size: .8125rem; color: #d8eaf3; }
+.user-avatar { background: #d8f1fb; color: #07548a; }
+.theme-toggle {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 7px;
+  color: #fff;
+  background: rgba(255,255,255,.1);
+}
+.theme-toggle:hover { background: rgba(255,255,255,.2); }
+
+.subnav, .dashboard .dashboard-context {
+  background: var(--surface);
+  border-color: var(--border);
+}
+.subnav { justify-content: flex-start; }
+.subnav > nav { flex: 1; }
+.subnav .local-indicator { margin-left: auto; }
+.subnav nav a, .local-indicator, .dashboard .dashboard-context > span:first-child { color: var(--text-soft); font-size: .8125rem; }
+.subnav nav a.active { color: var(--teal); }
+.subnav nav a.active::after { background: var(--brand-orange); }
+.subnav .back-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 6px;
+  padding-right: 18px;
+  border-right: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: .8125rem;
+  font-weight: 550;
+  white-space: nowrap;
+}
+.subnav .back-link:hover { color: var(--teal); }
+.subnav .back-link span { font-size: 1rem; line-height: 1; }
+
+.btn { min-height: 40px; font-size: .875rem; }
+.btn.primary { background: var(--teal); border-color: var(--teal); }
+.btn.primary:hover { background: #08749b; }
+.btn.secondary, .activity-compose, .modal-head, .modal-foot { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn.secondary:hover, .btn.ghost:hover { background: var(--surface-soft); }
+.page-header p, .breadcrumbs, .field, .field > span, .field small, .muted { color: var(--text-soft); }
+.page-header p, .breadcrumbs, .field, .field > span, .text-link, .record-link, .mono { font-size: .875rem; }
+
+.record-sheet, .customer-card, .list-card, .dashboard .application-card,
+.dashboard .dashboard-metrics > a, .dashboard .dashboard-panel, .modal {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+.summary-strip, .list-table, .list-table table, .list-table tbody,
+.list-table tbody tr, .empty {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+.summary-strip { box-shadow: var(--shadow); }
+.summary-strip > div { border-color: var(--border); }
+.summary-strip > div > span, .summary-strip > div > small,
+.summary-strip strong small, .pagination, .empty p { color: var(--text-soft); }
+.summary-strip strong, .empty h3 { color: var(--text); }
+.list-table tbody tr:hover { background: var(--surface-soft); }
+.list-toolbar > select, .filter-select, .filter-select select {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+.pagination button:disabled { background: var(--surface-soft); }
+.empty-icon { background: var(--surface-soft); border-color: var(--border); color: var(--brand-blue); }
+.dashboard .welcome-panel {
+  background: linear-gradient(112deg, var(--surface) 42%, color-mix(in srgb, var(--brand-blue) 9%, var(--surface)));
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+.dashboard .welcome-copy h1 span, .dashboard .eyebrow { color: var(--brand-blue-deep); }
+.dashboard .welcome-copy p, .dashboard .welcome-aside time, .dashboard .welcome-motto,
+.dashboard .module-description, .dashboard .dashboard-metrics > a > div > span,
+.dashboard .dashboard-metrics small, .dashboard .panel-heading p,
+.dashboard .panel-heading .eyebrow, .dashboard .chart-legend span,
+.dashboard .panel-footnote, .dashboard .dashboard-storage-note { color: var(--text-soft); }
+.dashboard .welcome-copy p { font-size: .9375rem; }
+.dashboard .dashboard-section-heading h2 { font-size: 1rem; }
+.dashboard .dashboard-section-heading > span { font-size: .8125rem; color: var(--text-soft); }
+.dashboard .application-card strong { font-size: .9rem; }
+.dashboard .module-description, .dashboard .module-status { font-size: .75rem; }
+.dashboard .unavailable { background: var(--surface-soft); }
+.dashboard .financial-chart text { fill: var(--text-soft); font-size: 11px; }
+.dashboard .chart-gridline { stroke: var(--border); }
+.dashboard .chart-empty { background: color-mix(in srgb, var(--surface) 88%, transparent); }
+
+.list-table, table { color: var(--text); }
+th { color: var(--text-soft); background: var(--surface-soft); }
+td, th, .tabs, .static-tab, .activity h3 { border-color: var(--border); }
+.tabs button, .activity h3, .timeline-event p, .record-heading > p,
+.record-meta p, .record-meta dt { color: var(--text-soft); }
+.tabs button.active { color: var(--teal); border-bottom-color: var(--brand-orange); }
+.static-tab { background: var(--surface-soft); color: var(--teal); }
+.title-input, .record-number-input, .description-input { background: transparent; color: var(--text); }
+
+.dashboard .workspace-search-results, .search, .pagination button, .view-switch button,
+.info-box, .contact-editor, .subtle-empty { background: var(--surface); color: var(--text); border-color: var(--border); }
+.dashboard .workspace-search-results a:hover, .view-switch button[aria-pressed="true"] { background: var(--surface-soft); }
+.dashboard .workspace-search-results p, .dashboard .workspace-search-results a span { color: var(--text-soft); }
+
+:root[data-theme="dark"] .tone-green,
+:root[data-theme="dark"] .tone-teal,
+:root[data-theme="dark"] .tone-blue,
+:root[data-theme="dark"] .tone-orange,
+:root[data-theme="dark"] .tone-violet,
+:root[data-theme="dark"] .tone-plum,
+:root[data-theme="dark"] .tone-slate { background: #263943; border-color: #3b5360; }
+:root[data-theme="dark"] .modal::backdrop { background: rgba(2, 10, 15, .72); }
+
+/* Complete dark-mode coverage for legacy sales and dashboard surfaces. */
+:root[data-theme="dark"] .statusbar,
+:root[data-theme="dark"] .line-toolbar,
+:root[data-theme="dark"] .line-table input,
+:root[data-theme="dark"] .line-table select,
+:root[data-theme="dark"] .document-bottom > .field textarea,
+:root[data-theme="dark"] .smart-buttons a,
+:root[data-theme="dark"] .radio-options > label,
+:root[data-theme="dark"] .schema-chips span,
+:root[data-theme="dark"] .toast,
+:root[data-theme="dark"] .skip-link {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .stages li,
+:root[data-theme="dark"] .tabs button span,
+:root[data-theme="dark"] .line-section,
+:root[data-theme="dark"] .filter-banner,
+:root[data-theme="dark"] tfoot,
+:root[data-theme="dark"] .dashboard .emblem-tile,
+:root[data-theme="dark"] .dashboard .task-empty > span,
+:root[data-theme="dark"] .dashboard .pending-count {
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .stages li.current,
+:root[data-theme="dark"] .radio-options > label:has(input:checked) {
+  background: #203b49;
+  color: var(--brand-blue-deep);
+  border-color: #356479;
+}
+:root[data-theme="dark"] .stages li.completed {
+  background: #203a35;
+  color: #8fd0b8;
+  border-color: #31564b;
+}
+
+:root[data-theme="dark"] .customer-quote > a,
+:root[data-theme="dark"] .amount,
+:root[data-theme="dark"] tfoot .numeric,
+:root[data-theme="dark"] .record-meta dd,
+:root[data-theme="dark"] .line-product-name,
+:root[data-theme="dark"] .totals-row strong,
+:root[data-theme="dark"] .customer-card h3,
+:root[data-theme="dark"] .panel-heading h3,
+:root[data-theme="dark"] .radio-options strong {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] td,
+:root[data-theme="dark"] .document-bottom,
+:root[data-theme="dark"] .smart-buttons,
+:root[data-theme="dark"] .recipient-row,
+:root[data-theme="dark"] .payment-summary,
+:root[data-theme="dark"] .payment-row,
+:root[data-theme="dark"] .timeline-event::before,
+:root[data-theme="dark"] .app-footer {
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .timeline-dot {
+  background: var(--surface);
+  border-color: var(--teal);
+}
+:root[data-theme="dark"] .smart-buttons a:hover,
+:root[data-theme="dark"] .dashboard .dashboard-tasks button:hover {
+  background: var(--surface-soft);
+}
+
+:root[data-theme="dark"] .badge { background: #3b3044; color: #d5a8df; }
+:root[data-theme="dark"] .badge.blue { background: #20394c; color: #88c2ed; }
+:root[data-theme="dark"] .badge.green { background: #203d35; color: #87cfb2; }
+:root[data-theme="dark"] .badge.amber { background: #443820; color: #eac578; }
+:root[data-theme="dark"] .badge.muted { background: #303b42; color: #aebbc3; }
+:root[data-theme="dark"] .alert.error { background: #43282e; border-color: #75404a; color: #f0a3ac; }
+:root[data-theme="dark"] .alert.warning { background: #403720; border-color: #6b5c32; color: #e9ca79; }
+:root[data-theme="dark"] .alert.info { background: #203b43; border-color: #35606a; color: #91d1dc; }
+
+:root[data-theme="dark"] .company-avatar,
+:root[data-theme="dark"] .company-avatar.color-1,
+:root[data-theme="dark"] .company-avatar.color-2,
+:root[data-theme="dark"] .company-avatar.color-3,
+:root[data-theme="dark"] .product-icon {
+  background: var(--surface-soft);
+  color: var(--brand-blue-deep);
+  border-color: var(--border);
+}
+
+/* Flat, deliberate emphasis for the main menu icons. */
+.dashboard .module-icon {
+  border-color: color-mix(in srgb, currentColor 32%, var(--border));
+  box-shadow: none;
+  transition: background-color .16s, border-color .16s, color .16s;
+}
+.dashboard a.application-card:hover .module-icon {
+  border-color: currentColor;
+  box-shadow: none;
+}
+:root[data-theme="dark"] .dashboard .tone-green { color: #67c8a6; background: #203a35; }
+:root[data-theme="dark"] .dashboard .tone-teal { color: #5cc9d4; background: #203b40; }
+:root[data-theme="dark"] .dashboard .tone-blue { color: #78addf; background: #243748; }
+:root[data-theme="dark"] .dashboard .tone-orange { color: #e4a648; background: #41351f; }
+:root[data-theme="dark"] .dashboard .tone-violet { color: #a898d5; background: #332f43; }
+:root[data-theme="dark"] .dashboard .tone-plum { color: #cf8cb4; background: #3e2c38; }
+:root[data-theme="dark"] .dashboard .tone-slate { color: #9babb9; background: #2b3942; }
+
+:root[data-theme="dark"] .dashboard .workspace-emblem::before {
+  border-color: var(--border);
+}
+:root[data-theme="dark"] .dashboard .chart-area { fill: rgba(53, 182, 231, .08); }
+:root[data-theme="dark"] .dashboard .financial-data { border-color: var(--border); }
+:root[data-theme="dark"] .dashboard .task-form,
+:root[data-theme="dark"] .dashboard .dashboard-tasks li { border-color: var(--border); }
+:root[data-theme="dark"] .dashboard .task-form input { background: var(--surface-soft); }
+:root[data-theme="dark"] .dashboard .panel-heading select {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-color: var(--border);
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .dashboard .panel-heading select:hover,
+:root[data-theme="dark"] .dashboard .panel-heading select:focus {
+  border-color: var(--teal);
+}
+:root[data-theme="dark"] .dashboard .panel-heading select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Quotation order-line editor has more specific legacy selectors. */
+:root[data-theme="dark"] .line-table th {
+  background: var(--surface-soft);
+  color: var(--text-soft);
+  border-color: var(--border);
+}
+:root[data-theme="dark"] .line-table td,
+:root[data-theme="dark"] .line-empty,
+:root[data-theme="dark"] .add-lines {
+  background: var(--surface);
+  color: var(--text-soft);
+  border-color: var(--border);
+}
+:root[data-theme="dark"] .line-table textarea,
+:root[data-theme="dark"] .line-table input,
+:root[data-theme="dark"] .line-table select {
+  background: transparent;
+  color: var(--text);
+}
+:root[data-theme="dark"] .line-table input:focus,
+:root[data-theme="dark"] .line-table textarea:focus,
+:root[data-theme="dark"] .line-table select:focus {
+  background: var(--surface-soft);
+  border-color: var(--teal);
+}
+:root[data-theme="dark"] .line-meta,
+:root[data-theme="dark"] .line-meta .text-link,
+:root[data-theme="dark"] .document-notes,
+:root[data-theme="dark"] .document-notes h4,
+:root[data-theme="dark"] .totals > div {
+  color: var(--text-soft);
+}
+:root[data-theme="dark"] .totals strong { color: var(--text); }
+:root[data-theme="dark"] .totals .grand-total {
+  border-color: var(--border);
+  color: var(--brand-blue);
+}
+:root[data-theme="dark"] .totals .grand-total strong { color: var(--brand-blue); }
+
+@media (max-width: 820px) {
+  .topbar { height: auto; min-height: 68px; }
+  .brand-logo { width: 104px; height: 48px; }
+  .theme-toggle { width: 36px; height: 36px; }
+}
